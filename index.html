@@ -43,7 +43,7 @@ const CONSTRUCTION_KEYWORDS=["bulldozer","excavator","grader","loader","backhoe"
 // ===== GSA API FETCH =====
 async function fetchGSAData(){
   try{
-    const url="https://api.gsa.gov/assets/gsaauctions/v2/auctions?api_key=DEMO_KEY&format=JSON";
+    const url="https://api.gsa.gov/assets/gsaauctions/v2/auctions?api_key=yb9tfvM2gTFGt5BnmgWcRpRMqFxkCWCm2MZ8mian&format=JSON";
     const res=await fetch(url);
     if(!res.ok) throw new Error(`API returned ${res.status}`);
     const data=await res.json();
