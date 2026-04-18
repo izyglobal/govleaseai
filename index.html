@@ -1,589 +1,67 @@
-import { useState, useEffect, useCallback } from "react";
 
-// ── Data ──
-const INSTALLATIONS = [
-  { id: "CAVAZOS", name: "Fort Cavazos", branch: "Army", lat: 31.13, lng: -97.78, state: "TX" },
-  { id: "BLISS", name: "Fort Bliss", branch: "Army", lat: 31.81, lng: -106.42, state: "TX" },
-  { id: "HOOD_NAVY", name: "NAS Corpus Christi", branch: "Navy", lat: 27.69, lng: -97.29, state: "TX" },
-  { id: "SILL", name: "Fort Sill", branch: "Army", lat: 34.65, lng: -98.40, state: "OK" },
-  { id: "PENDLETON", name: "Camp Pendleton", branch: "Marines", lat: 33.30, lng: -117.35, state: "CA" },
-  { id: "HUACHUCA", name: "Fort Huachuca", branch: "Army", lat: 31.55, lng: -110.35, state: "AZ" },
-  { id: "TINKER", name: "Tinker AFB", branch: "Air Force", lat: 35.41, lng: -97.39, state: "OK" },
-  { id: "CAMPBELL", name: "Fort Campbell", branch: "Army", lat: 36.66, lng: -87.47, state: "KY" },
-];
-
-const EQUIPMENT = [
-  { id: "EQ-001", type: "CAT D6T Bulldozer", nsn: "3805-01-547-2345", install: "CAVAZOS", branch: "Army", util: 12, daysIdle: 87, condition: "Serviceable", replacement: 285000, status: "Idle", hours: 4200, lastService: "2026-01-15" },
-  { id: "EQ-002", type: "John Deere 350G Excavator", nsn: "3805-01-612-8901", install: "CAVAZOS", branch: "Army", util: 8, daysIdle: 112, condition: "Serviceable", replacement: 342000, status: "Idle", hours: 3800, lastService: "2025-12-20" },
-  { id: "EQ-003", type: "CAT 140M3 Motor Grader", nsn: "3805-01-589-4567", install: "SILL", branch: "Army", util: 22, daysIdle: 45, condition: "Fair", replacement: 310000, status: "Idle", hours: 6100, lastService: "2026-02-10" },
-  { id: "EQ-004", type: "CAT 950M Wheel Loader", nsn: "3805-01-634-7890", install: "BLISS", branch: "Army", util: 65, daysIdle: 0, condition: "Serviceable", replacement: 265000, status: "Active", hours: 2900, lastService: "2026-03-01" },
-  { id: "EQ-005", type: "Komatsu PC210 Excavator", nsn: "3805-01-598-1234", install: "PENDLETON", branch: "Marines", util: 15, daysIdle: 68, condition: "Serviceable", replacement: 298000, status: "Idle", hours: 3200, lastService: "2026-01-28" },
-  { id: "EQ-006", type: "CAT D8T Bulldozer", nsn: "3805-01-555-6789", install: "HOOD_NAVY", branch: "Navy", util: 5, daysIdle: 134, condition: "Fair", replacement: 425000, status: "Idle", hours: 7500, lastService: "2025-11-15" },
-  { id: "EQ-007", type: "Volvo L120H Wheel Loader", nsn: "3805-01-622-3456", install: "CAMPBELL", branch: "Army", util: 18, daysIdle: 52, condition: "Serviceable", replacement: 275000, status: "Idle", hours: 4800, lastService: "2026-02-22" },
-  { id: "EQ-008", type: "John Deere 772G Motor Grader", nsn: "3805-01-601-7890", install: "HUACHUCA", branch: "Army", util: 30, daysIdle: 31, condition: "Serviceable", replacement: 295000, status: "Underutilized", hours: 3500, lastService: "2026-03-10" },
-  { id: "EQ-009", type: "CAT 320F Excavator", nsn: "3805-01-645-2345", install: "TINKER", branch: "Air Force", util: 10, daysIdle: 95, condition: "Needs Repair", replacement: 315000, status: "Idle", hours: 5800, lastService: "2025-10-05" },
-  { id: "EQ-010", type: "Komatsu D65 Bulldozer", nsn: "3805-01-578-9012", install: "SILL", branch: "Army", util: 42, daysIdle: 14, condition: "Serviceable", replacement: 255000, status: "Active", hours: 2100, lastService: "2026-03-25" },
-];
-
-const DEMANDS = [
-  { id: "DEM-001", type: "Bulldozer", install: "BLISS", branch: "Army", urgency: "High", requisition: "W91247-26-R-0042", est: 285000 },
-  { id: "DEM-002", type: "Excavator", install: "SILL", branch: "Army", urgency: "Medium", requisition: "W91247-26-R-0058", est: 342000 },
-  { id: "DEM-003", type: "Motor Grader", install: "CAMPBELL", branch: "Army", urgency: "High", requisition: "W91247-26-R-0061", est: 310000 },
-  { id: "DEM-004", type: "Wheel Loader", install: "HUACHUCA", branch: "Army", urgency: "Low", requisition: "W91247-26-R-0073", est: 265000 },
-  { id: "DEM-005", type: "Excavator", install: "PENDLETON", branch: "Marines", urgency: "Medium", requisition: "M67004-26-R-0019", est: 298000 },
-];
-
-function haversine(lat1, lng1, lat2, lng2) {
-  const R = 3959;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-function computeMatches() {
-  const matches = [];
-  DEMANDS.forEach(d => {
-    const destInst = INSTALLATIONS.find(i => i.id === d.install);
-    EQUIPMENT.filter(e => {
-      const typeMatch = e.type.toLowerCase().includes(d.type.toLowerCase());
-      return typeMatch && e.util < 40 && e.condition !== "Needs Repair" && e.install !== d.install;
-    }).forEach(e => {
-      const srcInst = INSTALLATIONS.find(i => i.id === e.install);
-      const dist = haversine(srcInst.lat, srcInst.lng, destInst.lat, destInst.lng);
-      const fes = e.type.toLowerCase().includes(d.type.toLowerCase()) ? 0.95 : 0.6;
-      const gps = Math.max(0, 1 - dist / 2000);
-      const tas = Math.min(1, e.daysIdle / 90);
-      const fvs = e.replacement > 100000 ? 0.9 : 0.5;
-      const ocs = e.condition === "Serviceable" ? 0.95 : 0.7;
-      const composite = (fes*0.25 + gps*0.20 + tas*0.25 + fvs*0.15 + ocs*0.15).toFixed(3);
-      const avoidance = Math.round(d.est * 0.85);
-      const transport = Math.round(dist * 4.2 + 1200);
-      const crossService = srcInst.branch !== destInst.branch;
-      matches.push({ id: `M-${matches.length+1}`, eq: e, demand: d, src: srcInst, dest: destInst, dist: Math.round(dist), composite: parseFloat(composite), fes, gps: gps.toFixed(3), tas: tas.toFixed(3), fvs, ocs, avoidance, transport, crossService, net: avoidance - transport });
-    });
-  });
-  return matches.sort((a,b) => b.composite - a.composite).slice(0, 12);
-}
-
-const MATCHES = computeMatches();
-
-// ── Styles ──
-const colors = {
-  bg: "#0a0e17", surface: "#111827", surfaceLight: "#1a2236", border: "#1e293b",
-  accent: "#3b82f6", accentDim: "#1e3a5f", green: "#10b981", greenDim: "#064e3b",
-  red: "#ef4444", amber: "#f59e0b", amberDim: "#78350f", text: "#e2e8f0", textDim: "#64748b",
-  purple: "#8b5cf6", cyan: "#06b6d4",
-};
-
-const base = {
-  fontFamily: "'JetBrains Mono', 'Fira Code', 'SF Mono', monospace",
-  fontSize: 13, color: colors.text, lineHeight: 1.5,
-};
-
-// ── Components ──
-function Badge({ children, color = colors.accent, bg }) {
-  return <span style={{ ...base, fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase",
-    padding: "3px 8px", borderRadius: 3, background: bg || color + "22", color, border: `1px solid ${color}44`,
-    whiteSpace: "nowrap" }}>{children}</span>;
-}
-
-function Card({ children, style, onClick, hoverable }) {
-  const [hovered, setHovered] = useState(false);
-  return <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onClick={onClick}
-    style={{ background: colors.surface, border: `1px solid ${hovered && hoverable ? colors.accent : colors.border}`,
-      borderRadius: 6, padding: 16, transition: "all 0.2s", cursor: hoverable ? "pointer" : "default",
-      ...(hovered && hoverable ? { transform: "translateY(-1px)", boxShadow: `0 4px 20px ${colors.accent}15` } : {}),
-      ...style }}>{children}</div>;
-}
-
-function Stat({ label, value, sub, color = colors.accent }) {
-  return <div style={{ textAlign: "center" }}>
-    <div style={{ ...base, fontSize: 11, color: colors.textDim, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}>{label}</div>
-    <div style={{ ...base, fontSize: 28, fontWeight: 700, color }}>{value}</div>
-    {sub && <div style={{ ...base, fontSize: 11, color: colors.textDim, marginTop: 2 }}>{sub}</div>}
-  </div>;
-}
-
-function ProgressBar({ value, max = 100, color = colors.accent, height = 6, showLabel }) {
-  const pct = Math.min(100, (value / max) * 100);
-  return <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-    <div style={{ flex: 1, height, background: colors.border, borderRadius: height/2, overflow: "hidden" }}>
-      <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: height/2, transition: "width 0.6s ease" }} />
-    </div>
-    {showLabel && <span style={{ ...base, fontSize: 11, color: colors.textDim, minWidth: 36 }}>{Math.round(pct)}%</span>}
-  </div>;
-}
-
-function FactorRow({ label, value, weight, formula }) {
-  const barColor = value > 0.7 ? colors.green : value > 0.4 ? colors.amber : colors.red;
-  return <div style={{ display: "grid", gridTemplateColumns: "140px 60px 1fr 50px 70px", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: `1px solid ${colors.border}` }}>
-    <span style={{ ...base, fontSize: 12, color: colors.textDim }}>{label}</span>
-    <span style={{ ...base, fontSize: 12, fontWeight: 600 }}>{typeof value === "number" ? value.toFixed(3) : value}</span>
-    <ProgressBar value={parseFloat(value)*100} color={barColor} />
-    <span style={{ ...base, fontSize: 10, color: colors.textDim }}>×{weight}</span>
-    <span style={{ ...base, fontSize: 10, color: colors.textDim, fontStyle: "italic" }}>{formula}</span>
-  </div>;
-}
-
-// ── MIPR Workflow State Machine ──
-function MIPRWorkflow({ match, onClose }) {
-  const [step, setStep] = useState(0);
-  const [token, setToken] = useState(null);
-
-  const steps = [
-    { title: "Match Signal Received", icon: "🎯", desc: "Algorithm identified viable cross-service match", status: "AUTOMATED",
-      detail: `Equipment: ${match.eq.type}\nSource: ${match.src.name} (${match.src.branch})\nDestination: ${match.dest.name} (${match.dest.branch})\nComposite Score: ${match.composite}\nCost Avoidance: $${match.avoidance.toLocaleString()}` },
-    { title: "DD Form 448 Generation", icon: "📄", desc: "System auto-populates standardized funds transfer request", status: "AUTOMATED",
-      detail: `MIPR Number: MIPR-${Date.now().toString(36).toUpperCase()}\nRequesting Activity: ${match.dest.name}\nPerforming Activity: ${match.src.name}\nFiscal Year: FY2026\nAppropriation: 2102020\nAmount: $${match.transport.toLocaleString()} (transport)\nDescription of Services: Temporary inter-service transfer of ${match.eq.type}, NSN ${match.eq.nsn}\nPeriod: 180 days\nPOC: Installation Property Book Officer` },
-    { title: "Appropriation Validation", icon: "⚖️", desc: "Configurable regulatory funding rules engine validates transaction legality", status: "AUTOMATED",
-      detail: `Validation checks performed:\n✓ Fund type authorized for equipment transfer (O&M)\n✓ Fiscal year funds available (FY2026 Q3)\n✓ Amount within single-transaction threshold\n✓ Cross-service transfer authority verified\n✓ Regulatory funding limit check: PASS\n✓ No fund augmentation detected\n\nAll regulatory compliance checks passed.\nTransaction cleared for approval routing.` },
-    { title: "Approval Routing", icon: "📨", desc: "System transmits draft package via secure interface to designated approving officials", status: "AUTOMATED",
-      detail: `Routing chain:\n1. Source Property Book Officer → PENDING\n2. Source Resource Manager → QUEUED\n3. Destination Property Book Officer → QUEUED\n4. Destination Resource Manager → QUEUED\n\nSecure transmission protocol: TLS 1.3\nPackage hash: SHA-256\nAll approvers notified via encrypted channel\n\nSystem state: HALTED\nAwaiting cryptographic authorization tokens...` },
-    { title: "Officer Authorization", icon: "🔐", desc: "System HALTED — awaiting digitally signed cryptographic authorization tokens from designated user terminals", status: "HUMAN DECISION",
-      detail: `⏸️ SYSTEM EXECUTION HALTED\n\nThe system has prepared all documentation and\nis now paused awaiting human authorization.\n\nRequired: Digitally signed authorization tokens\nfrom each approving official's CAC/PKI credential.\n\nThe system does NOT proceed without human approval.\nThe system does NOT make the transfer decision.\nThe officer reviews, decides, and signs.\n\nUpon receipt of valid tokens, automated\nexecution resumes.` },
-    { title: "Transfer Execution", icon: "🚛", desc: "System received valid authorization tokens — automated execution resumed", status: "AUTOMATED",
-      detail: `✓ Authorization tokens received and validated\n✓ PKI signatures verified against DoD certificate chain\n✓ Condition baseline photos captured (SHA-256 hashed)\n✓ IoT diagnostic telemetry snapshot recorded\n✓ Digital checklist completed and signed\n✓ Transportation routing calculated\n✓ Estimated transit: ${Math.ceil(match.dist / 350)} days\n✓ All custody documentation recorded to immutable audit log\n\nEquipment status: IN TRANSIT\nTracking: Active` },
-    { title: "Settlement & Audit Close", icon: "✅", desc: "Financial settlement confirmed, transaction recorded to immutable audit log", status: "AUTOMATED",
-      detail: `✓ Equipment received at destination\n✓ Return condition photos captured and hashed\n✓ Pre/post condition comparison: NO DISCREPANCY\n✓ Financial settlement: $${match.transport.toLocaleString()} transferred\n✓ DFAS reconciliation reference logged\n✓ Transaction closed in immutable audit log\n✓ OCS score updated for both organizations\n\nCost Avoidance Realized: $${match.net.toLocaleString()}\nAudit Trail: Complete and tamper-evident` },
-  ];
-
-  const s = steps[step];
-  return <div style={{ position: "fixed", inset: 0, background: "#000000cc", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
-    onClick={onClose}>
-    <div onClick={e => e.stopPropagation()} style={{ background: colors.bg, border: `1px solid ${colors.border}`, borderRadius: 8, width: "100%", maxWidth: 700, maxHeight: "90vh", overflow: "auto" }}>
-      {/* Header */}
-      <div style={{ padding: "16px 20px", borderBottom: `1px solid ${colors.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <div style={{ ...base, fontSize: 14, fontWeight: 700 }}>MIPR Financial Reconciliation Workflow</div>
-          <div style={{ ...base, fontSize: 11, color: colors.textDim }}>{match.eq.type} → {match.dest.name}</div>
-        </div>
-        <button onClick={onClose} style={{ ...base, background: "none", border: "none", color: colors.textDim, cursor: "pointer", fontSize: 18 }}>✕</button>
-      </div>
-
-      {/* Step indicator */}
-      <div style={{ padding: "12px 20px", display: "flex", gap: 4, borderBottom: `1px solid ${colors.border}` }}>
-        {steps.map((st, i) => <div key={i} style={{
-          flex: 1, height: 4, borderRadius: 2,
-          background: i < step ? colors.green : i === step ? (s.status === "HUMAN DECISION" ? colors.amber : colors.accent) : colors.border,
-          transition: "background 0.3s"
-        }} />)}
-      </div>
-
-      {/* Content */}
-      <div style={{ padding: 20 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-          <span style={{ fontSize: 32 }}>{s.icon}</span>
-          <div>
-            <div style={{ ...base, fontSize: 11, color: colors.textDim }}>STEP {step + 1} OF {steps.length}</div>
-            <div style={{ ...base, fontSize: 16, fontWeight: 700 }}>{s.title}</div>
-            <div style={{ ...base, fontSize: 12, color: colors.textDim, marginTop: 2 }}>{s.desc}</div>
-          </div>
-          <Badge color={s.status === "HUMAN DECISION" ? colors.amber : colors.green}>{s.status}</Badge>
-        </div>
-
-        {s.status === "HUMAN DECISION" && <div style={{ background: colors.amberDim, border: `1px solid ${colors.amber}44`, borderRadius: 6, padding: 12, marginBottom: 16 }}>
-          <div style={{ ...base, fontSize: 12, fontWeight: 700, color: colors.amber, marginBottom: 4 }}>⚠ HUMAN AUTHORIZATION REQUIRED</div>
-          <div style={{ ...base, fontSize: 11, color: colors.text }}>The system has halted automated execution. An authorized officer must review the prepared documentation and provide a digitally signed cryptographic authorization token to proceed. The system does not make this decision.</div>
-        </div>}
-
-        <pre style={{ ...base, fontSize: 11, background: colors.surfaceLight, border: `1px solid ${colors.border}`, borderRadius: 4, padding: 16, whiteSpace: "pre-wrap", margin: 0, lineHeight: 1.8 }}>{s.detail}</pre>
-      </div>
-
-      {/* Nav */}
-      <div style={{ padding: "12px 20px", borderTop: `1px solid ${colors.border}`, display: "flex", justifyContent: "space-between" }}>
-        <button disabled={step === 0} onClick={() => setStep(step-1)}
-          style={{ ...base, fontSize: 12, padding: "8px 16px", borderRadius: 4, border: `1px solid ${colors.border}`, background: "none", color: step === 0 ? colors.textDim : colors.text, cursor: step === 0 ? "default" : "pointer" }}>← Previous</button>
-        {step === 4 && !token ? (
-          <button onClick={() => { setToken("AUTH-" + Math.random().toString(36).substr(2,8).toUpperCase()); setTimeout(() => setStep(5), 800); }}
-            style={{ ...base, fontSize: 12, padding: "8px 20px", borderRadius: 4, border: `1px solid ${colors.amber}`, background: colors.amberDim, color: colors.amber, cursor: "pointer", fontWeight: 700 }}>
-            🔐 Simulate Officer Authorization
-          </button>
-        ) : (
-          <button disabled={step === steps.length - 1} onClick={() => setStep(step+1)}
-            style={{ ...base, fontSize: 12, padding: "8px 16px", borderRadius: 4, border: `1px solid ${colors.accent}`, background: step === steps.length - 1 ? "none" : colors.accentDim, color: step === steps.length - 1 ? colors.textDim : colors.accent, cursor: step === steps.length - 1 ? "default" : "pointer" }}>
-            Next →
-          </button>
-        )}
-      </div>
-    </div>
-  </div>;
-}
-
-// ── Condition Tracking Modal ──
-function ConditionModal({ eq, onClose }) {
-  const hash = "a3f8" + eq.id.replace(/[^0-9]/g,"") + "c7e2b1d09f4a6e8c3b5d7f1a2e4c6d8b0a9f7e5c3d1b";
-  return <div style={{ position: "fixed", inset: 0, background: "#000000cc", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
-    <div onClick={e => e.stopPropagation()} style={{ background: colors.bg, border: `1px solid ${colors.border}`, borderRadius: 8, width: "100%", maxWidth: 600, maxHeight: "90vh", overflow: "auto" }}>
-      <div style={{ padding: "16px 20px", borderBottom: `1px solid ${colors.border}`, display: "flex", justifyContent: "space-between" }}>
-        <div style={{ ...base, fontSize: 14, fontWeight: 700 }}>Condition Documentation — {eq.type}</div>
-        <button onClick={onClose} style={{ ...base, background: "none", border: "none", color: colors.textDim, cursor: "pointer", fontSize: 18 }}>✕</button>
-      </div>
-      <div style={{ padding: 20 }}>
-        {/* Transfer Baseline */}
-        <div style={{ ...base, fontSize: 12, fontWeight: 700, color: colors.accent, marginBottom: 8 }}>PRE-TRANSFER CONDITION BASELINE</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
-          {["📸 Visual Photo", "🔧 Diagnostic Telemetry", "📋 Digital Checklist"].map((m, i) => (
-            <Card key={i} style={{ padding: 10 }}>
-              <div style={{ ...base, fontSize: 11, fontWeight: 600, marginBottom: 6 }}>{m}</div>
-              <div style={{ ...base, fontSize: 10, color: colors.textDim }}>
-                {i === 0 && `Exterior: 4 angles captured\nInterior: 2 photos\nDamage areas: 0 flagged`}
-                {i === 1 && `Engine hours: ${eq.hours}\nFluid pressure: Normal\nDTC codes: None active\nBattery: 12.6V`}
-                {i === 2 && `Tracks/tires: ✓ Good\nHydraulics: ✓ Operational\nSafety equip: ✓ Present\nFluids: ✓ Topped`}
-              </div>
-            </Card>
-          ))}
-        </div>
-
-        <div style={{ ...base, fontSize: 11, color: colors.textDim, marginBottom: 4 }}>SHA-256 Hash (tamper-evident):</div>
-        <div style={{ ...base, fontSize: 10, background: colors.surfaceLight, padding: 8, borderRadius: 4, fontFamily: "monospace", wordBreak: "break-all", color: colors.green, marginBottom: 16 }}>{hash}</div>
-        <div style={{ ...base, fontSize: 10, color: colors.textDim, marginBottom: 16 }}>Timestamp: {new Date().toISOString()} | Recorded to immutable audit log</div>
-
-        {/* Feedback Loop */}
-        <div style={{ ...base, fontSize: 12, fontWeight: 700, color: colors.purple, marginBottom: 8 }}>FEEDBACK LOOP → MATCHING ENGINE</div>
-        <Card style={{ background: colors.surfaceLight }}>
-          <div style={{ ...base, fontSize: 11, lineHeight: 1.8 }}>
-            <div>This organization's historical condition record:</div>
-            <div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-              <div><span style={{ color: colors.textDim }}>Transfers:</span> <span style={{ fontWeight: 600 }}>12</span></div>
-              <div><span style={{ color: colors.textDim }}>Discrepancies:</span> <span style={{ fontWeight: 600, color: colors.amber }}>2</span></div>
-              <div><span style={{ color: colors.textDim }}>OCS Score:</span> <span style={{ fontWeight: 600, color: colors.green }}>0.850</span></div>
-            </div>
-            <div style={{ marginTop: 12, padding: 8, background: colors.bg, borderRadius: 4, fontSize: 10 }}>
-              <span style={{ color: colors.purple }}>↻ Feedback:</span> OCS = 1.0 − (weighted_decay × discrepancy_rate) = 1.0 − (0.9 × 0.167) = <span style={{ fontWeight: 700 }}>0.850</span>
-              <br/>This score is fed back into the matching engine. Organizations with lower OCS are deprioritized in future match signals.
-            </div>
-          </div>
-        </Card>
-      </div>
-    </div>
-  </div>;
-}
-
-// ── Main App ──
-export default function GovLeaseAI() {
-  const [tab, setTab] = useState("dashboard");
-  const [miprMatch, setMiprMatch] = useState(null);
-  const [condEq, setCondEq] = useState(null);
-  const [expandedMatch, setExpandedMatch] = useState(null);
-
-  const totalAvoidance = MATCHES.reduce((s, m) => s + m.net, 0);
-  const idleEquip = EQUIPMENT.filter(e => e.util < 30).length;
-  const crossService = MATCHES.filter(m => m.crossService).length;
-
-  const tabs = [
-    { id: "dashboard", label: "Dashboard", icon: "◉" },
-    { id: "equipment", label: "Equipment Index", icon: "▦" },
-    { id: "matching", label: "Matching Engine", icon: "⊕" },
-    { id: "mipr", label: "Financial Workflow", icon: "◈" },
-    { id: "condition", label: "Condition Tracking", icon: "◎" },
-    { id: "analytics", label: "Cost Avoidance", icon: "△" },
-  ];
-
-  return <div style={{ ...base, background: colors.bg, minHeight: "100vh" }}>
-    {miprMatch && <MIPRWorkflow match={miprMatch} onClose={() => setMiprMatch(null)} />}
-    {condEq && <ConditionModal eq={condEq} onClose={() => setCondEq(null)} />}
-
-    {/* Header */}
-    <div style={{ borderBottom: `1px solid ${colors.border}`, padding: "12px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <div style={{ ...base, fontSize: 16, fontWeight: 800, letterSpacing: 2 }}>
-          <span style={{ color: colors.accent }}>GOV</span><span style={{ color: colors.text }}>LEASE</span><span style={{ color: colors.green }}>AI</span>
-        </div>
-        <Badge color={colors.green}>PHASE 1 PILOT</Badge>
-        <Badge color={colors.purple}>CLASS IV CONSTRUCTION</Badge>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ ...base, fontSize: 10, color: colors.textDim }}>U.S. Patent App. 19/639,216</span>
-        <span style={{ ...base, fontSize: 10, color: colors.textDim }}>|</span>
-        <span style={{ ...base, fontSize: 10, color: colors.textDim }}>SDVOSB · CAGE 949Y3</span>
-      </div>
-    </div>
-
-    {/* Tabs */}
-    <div style={{ borderBottom: `1px solid ${colors.border}`, padding: "0 24px", display: "flex", gap: 0 }}>
-      {tabs.map(t => <button key={t.id} onClick={() => setTab(t.id)}
-        style={{ ...base, fontSize: 12, padding: "12px 20px", background: "none", border: "none", borderBottom: tab === t.id ? `2px solid ${colors.accent}` : "2px solid transparent",
-          color: tab === t.id ? colors.accent : colors.textDim, cursor: "pointer", transition: "all 0.2s" }}>
-        <span style={{ marginRight: 6 }}>{t.icon}</span>{t.label}
-      </button>)}
-    </div>
-
-    {/* Content */}
-    <div style={{ padding: 24 }}>
-
-      {/* ── DASHBOARD ── */}
-      {tab === "dashboard" && <>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16, marginBottom: 24 }}>
-          <Card><Stat label="Equipment Tracked" value={EQUIPMENT.length} sub="Class IV items" /></Card>
-          <Card><Stat label="Idle / Underutilized" value={idleEquip} sub={`${Math.round(idleEquip/EQUIPMENT.length*100)}% of fleet`} color={colors.amber} /></Card>
-          <Card><Stat label="Active Matches" value={MATCHES.length} sub="algorithm-generated" color={colors.green} /></Card>
-          <Card><Stat label="Cross-Service" value={crossService} sub="inter-branch matches" color={colors.purple} /></Card>
-          <Card><Stat label="Potential Avoidance" value={`$${(totalAvoidance/1e6).toFixed(1)}M`} sub="procurement savings" color={colors.green} /></Card>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-          <Card>
-            <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 12 }}>SYSTEM ARCHITECTURE — 9 SUBSYSTEMS</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
-              {["Data Ingestion", "Normalization Engine", "Predictive Matching", "Procurement Alerts", "Financial Reconciliation", "Condition Documentation", "Damage Adjudication", "Condition Feedback Engine", "Heuristic Mapping Layer"].map((s, i) => (
-                <div key={i} style={{ ...base, fontSize: 10, padding: "8px 10px", background: colors.surfaceLight, borderRadius: 4, border: `1px solid ${colors.border}`, display: "flex", alignItems: "center", gap: 6 }}>
-                  <span style={{ color: colors.green, fontSize: 8 }}>●</span>{s}
-                </div>
-              ))}
-            </div>
-          </Card>
-          <Card>
-            <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 12 }}>TOP MATCH SIGNALS</div>
-            {MATCHES.slice(0, 5).map(m => (
-              <div key={m.id} onClick={() => { setTab("matching"); setExpandedMatch(m.id); }} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${colors.border}`, cursor: "pointer" }}>
-                <div>
-                  <div style={{ ...base, fontSize: 11, fontWeight: 600 }}>{m.eq.type}</div>
-                  <div style={{ ...base, fontSize: 10, color: colors.textDim }}>{m.src.name} → {m.dest.name}</div>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ ...base, fontSize: 12, fontWeight: 700, color: colors.green }}>${m.net.toLocaleString()}</div>
-                  <div style={{ ...base, fontSize: 10, color: colors.textDim }}>Score: {m.composite}</div>
-                </div>
-              </div>
-            ))}
-          </Card>
-        </div>
-      </>}
-
-      {/* ── EQUIPMENT INDEX ── */}
-      {tab === "equipment" && <>
-        <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 16 }}>UNIFIED EQUIPMENT INDEX — DPAS BATCH DATA INGESTION</div>
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead><tr>{["ID", "Equipment Type", "NSN", "Installation", "Branch", "Utilization", "Days Idle", "Condition", "Hours", "Replacement Value", "Actions"].map(h =>
-              <th key={h} style={{ ...base, fontSize: 10, color: colors.textDim, textAlign: "left", padding: "8px 10px", borderBottom: `1px solid ${colors.border}`, textTransform: "uppercase", letterSpacing: 1 }}>{h}</th>
-            )}</tr></thead>
-            <tbody>{EQUIPMENT.map(e => {
-              const inst = INSTALLATIONS.find(i => i.id === e.install);
-              const utilColor = e.util < 20 ? colors.red : e.util < 40 ? colors.amber : colors.green;
-              return <tr key={e.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
-                <td style={{ ...base, fontSize: 11, padding: "10px" }}>{e.id}</td>
-                <td style={{ ...base, fontSize: 11, padding: "10px", fontWeight: 600 }}>{e.type}</td>
-                <td style={{ ...base, fontSize: 10, padding: "10px", color: colors.textDim }}>{e.nsn}</td>
-                <td style={{ ...base, fontSize: 11, padding: "10px" }}>{inst?.name}</td>
-                <td style={{ ...base, fontSize: 11, padding: "10px" }}><Badge color={inst?.branch === "Army" ? colors.green : inst?.branch === "Navy" ? colors.accent : inst?.branch === "Marines" ? colors.red : colors.purple}>{inst?.branch}</Badge></td>
-                <td style={{ ...base, fontSize: 11, padding: "10px", width: 120 }}><ProgressBar value={e.util} color={utilColor} showLabel /></td>
-                <td style={{ ...base, fontSize: 11, padding: "10px", color: e.daysIdle > 60 ? colors.red : colors.text }}>{e.daysIdle}</td>
-                <td style={{ ...base, fontSize: 11, padding: "10px" }}><Badge color={e.condition === "Serviceable" ? colors.green : e.condition === "Fair" ? colors.amber : colors.red}>{e.condition}</Badge></td>
-                <td style={{ ...base, fontSize: 11, padding: "10px", color: colors.textDim }}>{e.hours.toLocaleString()}</td>
-                <td style={{ ...base, fontSize: 11, padding: "10px" }}>${e.replacement.toLocaleString()}</td>
-                <td style={{ padding: "10px" }}><button onClick={() => setCondEq(e)} style={{ ...base, fontSize: 10, padding: "4px 10px", borderRadius: 3, border: `1px solid ${colors.cyan}44`, background: colors.cyan + "11", color: colors.cyan, cursor: "pointer" }}>Inspect</button></td>
-              </tr>;
-            })}</tbody>
-          </table>
-        </div>
-        <div style={{ marginTop: 16, padding: 12, background: colors.surfaceLight, borderRadius: 4, border: `1px solid ${colors.border}` }}>
-          <div style={{ ...base, fontSize: 10, color: colors.textDim }}>
-            <span style={{ color: colors.accent }}>DATA SOURCE:</span> DPAS batch uploads (daily CSV during pilot) | <span style={{ color: colors.accent }}>NORMALIZATION:</span> Equipment classified to unified taxonomy, condition codes standardized, geographic references normalized | <span style={{ color: colors.accent }}>DATA CONFIDENCE:</span> Each record scored on field completeness, source fidelity, and semantic resolution
-          </div>
-        </div>
-      </>}
-
-      {/* ── MATCHING ENGINE ── */}
-      {tab === "matching" && <>
-        <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 4 }}>PREDICTIVE MATCHING ENGINE</div>
-        <div style={{ ...base, fontSize: 11, color: colors.textDim, marginBottom: 16 }}>
-          Composite Score = (FES×0.25) + (GPS×0.20) + (TAS×0.25) + (FVS×0.15) + (OCS×0.15) × DQM
-        </div>
-        {MATCHES.map(m => {
-          const expanded = expandedMatch === m.id;
-          return <Card key={m.id} style={{ marginBottom: 8, border: expanded ? `1px solid ${colors.accent}` : undefined }} hoverable onClick={() => setExpandedMatch(expanded ? null : m.id)}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <div style={{ ...base, fontSize: 22, fontWeight: 800, color: colors.accent, minWidth: 60 }}>{(m.composite * 100).toFixed(0)}%</div>
-                <div>
-                  <div style={{ ...base, fontSize: 12, fontWeight: 600 }}>{m.eq.type}</div>
-                  <div style={{ ...base, fontSize: 11, color: colors.textDim }}>{m.src.name} ({m.src.branch}) → {m.dest.name} ({m.dest.branch}) · {m.dist} mi</div>
-                </div>
-                {m.crossService && <Badge color={colors.purple}>CROSS-SERVICE</Badge>}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ ...base, fontSize: 14, fontWeight: 700, color: colors.green }}>${m.net.toLocaleString()}</div>
-                  <div style={{ ...base, fontSize: 10, color: colors.textDim }}>net avoidance</div>
-                </div>
-                <button onClick={e => { e.stopPropagation(); setMiprMatch(m); }}
-                  style={{ ...base, fontSize: 10, padding: "8px 14px", borderRadius: 4, border: `1px solid ${colors.accent}`, background: colors.accentDim, color: colors.accent, cursor: "pointer", fontWeight: 700, whiteSpace: "nowrap" }}>
-                  MIPR →
-                </button>
-              </div>
-            </div>
-
-            {expanded && <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${colors.border}` }}>
-              <div style={{ ...base, fontSize: 11, fontWeight: 700, color: colors.accent, marginBottom: 8 }}>FACTOR SCORE DECOMPOSITION</div>
-              <FactorRow label="Equipment Similarity" value={m.fes} weight="0.25" formula="Taxonomy match" />
-              <FactorRow label="Geographic Proximity" value={m.gps} weight="0.20" formula="Haversine" />
-              <FactorRow label="Temporal Availability" value={m.tas} weight="0.25" formula="Idle days / 90" />
-              <FactorRow label="Financial Value" value={m.fvs} weight="0.15" formula="Replacement $" />
-              <FactorRow label="Org. Condition Score" value={m.ocs} weight="0.15" formula="Feedback loop" />
-              <div style={{ marginTop: 12, display: "flex", gap: 16 }}>
-                <div style={{ ...base, fontSize: 10, color: colors.textDim }}>
-                  <span style={{ color: colors.accent }}>Demand:</span> Requisition {m.demand.requisition} | Est. ${m.demand.est.toLocaleString()} | Urgency: {m.demand.urgency}
-                </div>
-                <div style={{ ...base, fontSize: 10, color: colors.textDim }}>
-                  <span style={{ color: colors.accent }}>Source:</span> {m.eq.hours.toLocaleString()} engine hrs | Last service: {m.eq.lastService}
-                </div>
-              </div>
-            </div>}
-          </Card>;
-        })}
-      </>}
-
-      {/* ── FINANCIAL WORKFLOW ── */}
-      {tab === "mipr" && <>
-        <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 4 }}>AUTOMATED FINANCIAL RECONCILIATION — STATE MACHINE</div>
-        <div style={{ ...base, fontSize: 11, color: colors.textDim, marginBottom: 16 }}>
-          Click any match below to walk through the complete 7-step MIPR workflow. The system automates all steps except Step 5 (Officer Authorization), where execution halts and waits for human cryptographic authorization.
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 24 }}>
-          {["Match Signal", "Form Generation", "Appropriation Check", "Approval Routing", "⏸ OFFICER AUTH", "Transfer Execution", "Settlement"].map((s, i) => (
-            <div key={i} style={{ ...base, fontSize: 9, padding: "10px 6px", background: i === 4 ? colors.amberDim : colors.surfaceLight, border: `1px solid ${i === 4 ? colors.amber + "44" : colors.border}`,
-              borderRadius: 4, textAlign: "center", fontWeight: i === 4 ? 700 : 400, color: i === 4 ? colors.amber : colors.textDim }}>
-              <div style={{ fontSize: 16, marginBottom: 4 }}>{["🎯","📄","⚖️","📨","🔐","🚛","✅"][i]}</div>
-              {s}
-              <div style={{ fontSize: 8, marginTop: 4, color: i === 4 ? colors.amber : colors.textDim }}>{i === 4 ? "HUMAN" : "AUTO"}</div>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ ...base, fontSize: 11, fontWeight: 700, marginBottom: 8 }}>SELECT A MATCH TO INITIATE WORKFLOW</div>
-        {MATCHES.slice(0, 6).map(m => (
-          <Card key={m.id} hoverable onClick={() => setMiprMatch(m)} style={{ marginBottom: 6, padding: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ ...base, fontSize: 14, fontWeight: 700, color: colors.accent }}>{(m.composite*100).toFixed(0)}%</span>
-                <div>
-                  <div style={{ ...base, fontSize: 11, fontWeight: 600 }}>{m.eq.type}</div>
-                  <div style={{ ...base, fontSize: 10, color: colors.textDim }}>{m.src.name} → {m.dest.name}</div>
-                </div>
-                {m.crossService && <Badge color={colors.purple}>CROSS-SERVICE</Badge>}
-              </div>
-              <div style={{ ...base, fontSize: 12, fontWeight: 700, color: colors.green }}>${m.net.toLocaleString()} avoidance</div>
-            </div>
-          </Card>
-        ))}
-      </>}
-
-      {/* ── CONDITION TRACKING ── */}
-      {tab === "condition" && <>
-        <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 4 }}>CRYPTOGRAPHIC CONDITION DOCUMENTATION & FEEDBACK ENGINE</div>
-        <div style={{ ...base, fontSize: 11, color: colors.textDim, marginBottom: 16 }}>
-          Three-modality capture (photos + IoT diagnostics + digital checklist) at transfer and return. SHA-256 hashing ensures tamper-evident records. Condition results feed back into the Organizational Condition Score (OCS), directly influencing future match priority.
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 24 }}>
-          <Card style={{ borderTop: `3px solid ${colors.accent}` }}>
-            <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>📸 Visual Documentation</div>
-            <div style={{ ...base, fontSize: 11, color: colors.textDim, lineHeight: 1.8 }}>
-              Multi-angle exterior photos<br/>Interior compartment photos<br/>Damage-area close-ups<br/>Each photo SHA-256 hashed<br/>Timestamp + GPS embedded<br/>Stored in immutable audit log
-            </div>
-          </Card>
-          <Card style={{ borderTop: `3px solid ${colors.green}` }}>
-            <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>🔧 IoT Diagnostic Telemetry</div>
-            <div style={{ ...base, fontSize: 11, color: colors.textDim, lineHeight: 1.8 }}>
-              Engine diagnostic codes (DTC)<br/>Fluid pressure readings<br/>Hours of operation counter<br/>Battery voltage snapshot<br/>Hydraulic system status<br/>All telemetry SHA-256 hashed
-            </div>
-          </Card>
-          <Card style={{ borderTop: `3px solid ${colors.purple}` }}>
-            <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>📋 Digital Inspection Checklist</div>
-            <div style={{ ...base, fontSize: 11, color: colors.textDim, lineHeight: 1.8 }}>
-              Tracks/tires condition<br/>Hydraulic system check<br/>Safety equipment inventory<br/>Fluid levels verification<br/>Operator signature (digital)<br/>Checklist hash recorded
-            </div>
-          </Card>
-        </div>
-
-        <Card>
-          <div style={{ ...base, fontSize: 12, fontWeight: 700, color: colors.purple, marginBottom: 12 }}>CLOSED-LOOP FEEDBACK → MATCHING ENGINE</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 4 }}>
-            {["Transfer Complete", "Return Inspection", "Pre/Post Comparison", "Discrepancy Score", "OCS Update → Engine"].map((s, i) => (
-              <div key={i} style={{ ...base, fontSize: 10, padding: 10, background: colors.surfaceLight, border: `1px solid ${colors.border}`, borderRadius: 4, textAlign: "center" }}>
-                <div style={{ fontSize: 18, marginBottom: 4 }}>{["🚛","🔍","⚖️","📊","↻"][i]}</div>
-                {s}
-                {i < 4 && <div style={{ color: colors.purple, marginTop: 4 }}>→</div>}
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 12, ...base, fontSize: 10, color: colors.textDim, padding: 10, background: colors.bg, borderRadius: 4 }}>
-            OCS = 1.0 − (weighted_decay_constant × condition_discrepancy_rate) | Organizations with poor stewardship receive lower match priority automatically. The system learns from every transfer.
-          </div>
-        </Card>
-
-        <div style={{ ...base, fontSize: 11, fontWeight: 700, marginTop: 24, marginBottom: 8 }}>CLICK ANY EQUIPMENT TO VIEW CONDITION DETAIL</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
-          {EQUIPMENT.filter(e => e.status !== "Active").slice(0, 5).map(e => (
-            <Card key={e.id} hoverable onClick={() => setCondEq(e)} style={{ padding: 10 }}>
-              <div style={{ ...base, fontSize: 10, fontWeight: 600 }}>{e.type.split(" ").slice(0,2).join(" ")}</div>
-              <div style={{ ...base, fontSize: 9, color: colors.textDim }}>{INSTALLATIONS.find(i => i.id === e.install)?.name}</div>
-              <div style={{ marginTop: 4 }}><Badge color={e.condition === "Serviceable" ? colors.green : colors.amber}>{e.condition}</Badge></div>
-            </Card>
-          ))}
-        </div>
-      </>}
-
-      {/* ── ANALYTICS ── */}
-      {tab === "analytics" && <>
-        <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 16 }}>COST AVOIDANCE ANALYTICS — PILOT EXECUTIVE SUMMARY</div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
-          <Card><Stat label="Total Cost Avoidance" value={`$${(totalAvoidance/1e6).toFixed(1)}M`} color={colors.green} /></Card>
-          <Card><Stat label="Matches Generated" value={MATCHES.length} color={colors.accent} /></Card>
-          <Card><Stat label="Avg per Match" value={`$${Math.round(totalAvoidance/MATCHES.length/1000)}K`} color={colors.green} /></Card>
-          <Card><Stat label="Pilot ROI" value={`${(totalAvoidance/575000).toFixed(1)}x`} sub="on $575K investment" color={colors.green} /></Card>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-          <Card>
-            <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 12 }}>AVOIDANCE BY SOURCE INSTALLATION</div>
-            {INSTALLATIONS.filter(inst => MATCHES.some(m => m.src.id === inst.id)).map(inst => {
-              const instAvoidance = MATCHES.filter(m => m.src.id === inst.id).reduce((s, m) => s + m.net, 0);
-              return <div key={inst.id} style={{ marginBottom: 8 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ ...base, fontSize: 11 }}>{inst.name} <span style={{ color: colors.textDim }}>({inst.branch})</span></span>
-                  <span style={{ ...base, fontSize: 11, color: colors.green, fontWeight: 600 }}>${(instAvoidance/1000).toFixed(0)}K</span>
-                </div>
-                <ProgressBar value={instAvoidance} max={totalAvoidance} color={colors.green} />
-              </div>;
-            })}
-          </Card>
-          <Card>
-            <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 12 }}>PILOT METRICS</div>
-            <div style={{ ...base, fontSize: 11, lineHeight: 2.2 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: `1px solid ${colors.border}`, padding: "4px 0" }}>
-                <span style={{ color: colors.textDim }}>Equipment Tracked</span><span style={{ fontWeight: 600 }}>{EQUIPMENT.length} items</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: `1px solid ${colors.border}`, padding: "4px 0" }}>
-                <span style={{ color: colors.textDim }}>Idle Rate Detected</span><span style={{ fontWeight: 600, color: colors.amber }}>{Math.round(idleEquip/EQUIPMENT.length*100)}%</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: `1px solid ${colors.border}`, padding: "4px 0" }}>
-                <span style={{ color: colors.textDim }}>Cross-Service Matches</span><span style={{ fontWeight: 600, color: colors.purple }}>{crossService} of {MATCHES.length}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: `1px solid ${colors.border}`, padding: "4px 0" }}>
-                <span style={{ color: colors.textDim }}>Avg Match Confidence</span><span style={{ fontWeight: 600 }}>{(MATCHES.reduce((s,m) => s+m.composite, 0)/MATCHES.length*100).toFixed(1)}%</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: `1px solid ${colors.border}`, padding: "4px 0" }}>
-                <span style={{ color: colors.textDim }}>Phase 1 Investment</span><span style={{ fontWeight: 600 }}>$575,000</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
-                <span style={{ color: colors.textDim }}>Data Source</span><span style={{ fontWeight: 600 }}>DPAS Batch (Daily CSV)</span>
-              </div>
-            </div>
-          </Card>
-        </div>
-      </>}
-    </div>
-
-    {/* Footer */}
-    <div style={{ borderTop: `1px solid ${colors.border}`, padding: "12px 24px", textAlign: "center" }}>
-      <span style={{ ...base, fontSize: 10, color: colors.textDim }}>
-        DEMO — SYNTHETIC DATA — NOT CONNECTED TO GOVERNMENT SYSTEMS | Izy Global Services LLC · SBA-Certified SDVOSB · U.S. Patent Application 19/639,216
-      </span>
-    </div>
-  </div>;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovLeaseAI — DoD Secure Access</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{background:#f8f9fb;font-family:'Inter',sans-serif}::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:#f1f1f1}::-webkit-scrollbar-thumb{background:#c1c7d0;border-radius:3px}table{border-spacing:0}button{font-family:inherit}@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}@keyframes slideIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const{useState}=React;
+const I=[{id:"CAVAZOS",name:"Fort Cavazos",b:"Army",lat:31.13,lng:-97.78},{id:"BLISS",name:"Fort Bliss",b:"Army",lat:31.81,lng:-106.42},{id:"CORPUS",name:"NAS Corpus Christi",b:"Navy",lat:27.69,lng:-97.29},{id:"SILL",name:"Fort Sill",b:"Army",lat:34.65,lng:-98.40},{id:"PEND",name:"Camp Pendleton",b:"Marines",lat:33.30,lng:-117.35},{id:"HUACH",name:"Fort Huachuca",b:"Army",lat:31.55,lng:-110.35},{id:"TINK",name:"Tinker AFB",b:"Air Force",lat:35.41,lng:-97.39},{id:"CAMP",name:"Fort Campbell",b:"Army",lat:36.66,lng:-87.47}];
+const E=[{id:"EQ-001",t:"CAT D6T Bulldozer",n:"3805-01-547-2345",i:"CAVAZOS",b:"Army",u:12,d:87,c:"Serviceable",r:285000,h:4200,s:"2026-01-15"},{id:"EQ-002",t:"JD 350G Excavator",n:"3805-01-612-8901",i:"CAVAZOS",b:"Army",u:8,d:112,c:"Serviceable",r:342000,h:3800,s:"2025-12-20"},{id:"EQ-003",t:"CAT 140M3 Motor Grader",n:"3805-01-589-4567",i:"SILL",b:"Army",u:22,d:45,c:"Fair",r:310000,h:6100,s:"2026-02-10"},{id:"EQ-004",t:"CAT 950M Wheel Loader",n:"3805-01-634-7890",i:"BLISS",b:"Army",u:65,d:0,c:"Serviceable",r:265000,h:2900,s:"2026-03-01"},{id:"EQ-005",t:"Komatsu PC210 Excavator",n:"3805-01-598-1234",i:"PEND",b:"Marines",u:15,d:68,c:"Serviceable",r:298000,h:3200,s:"2026-01-28"},{id:"EQ-006",t:"CAT D8T Bulldozer",n:"3805-01-555-6789",i:"CORPUS",b:"Navy",u:5,d:134,c:"Fair",r:425000,h:7500,s:"2025-11-15"},{id:"EQ-007",t:"Volvo L120H Loader",n:"3805-01-622-3456",i:"CAMP",b:"Army",u:18,d:52,c:"Serviceable",r:275000,h:4800,s:"2026-02-22"},{id:"EQ-008",t:"JD 772G Motor Grader",n:"3805-01-601-7890",i:"HUACH",b:"Army",u:30,d:31,c:"Serviceable",r:295000,h:3500,s:"2026-03-10"},{id:"EQ-009",t:"CAT 320F Excavator",n:"3805-01-645-2345",i:"TINK",b:"Air Force",u:10,d:95,c:"Needs Repair",r:315000,h:5800,s:"2025-10-05"},{id:"EQ-010",t:"Komatsu D65 Bulldozer",n:"3805-01-578-9012",i:"SILL",b:"Army",u:42,d:14,c:"Serviceable",r:255000,h:2100,s:"2026-03-25"}];
+const D=[{id:"D1",t:"Bulldozer",i:"BLISS",b:"Army",ug:"High",rq:"W91247-26-R-0042",e:285000},{id:"D2",t:"Excavator",i:"SILL",b:"Army",ug:"Medium",rq:"W91247-26-R-0058",e:342000},{id:"D3",t:"Motor Grader",i:"CAMP",b:"Army",ug:"High",rq:"W91247-26-R-0061",e:310000},{id:"D4",t:"Wheel Loader",i:"HUACH",b:"Army",ug:"Low",rq:"W91247-26-R-0073",e:265000},{id:"D5",t:"Excavator",i:"PEND",b:"Marines",ug:"Medium",rq:"M67004-26-R-0019",e:298000}];
+function hv(a,b,c,d){const R=3959,x=(c-a)*Math.PI/180,y=(d-b)*Math.PI/180,z=Math.sin(x/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z))}
+function mk(){const m=[];D.forEach(d=>{const di=I.find(x=>x.id===d.i);E.filter(e=>e.t.toLowerCase().includes(d.t.toLowerCase())&&e.u<40&&e.c!=="Needs Repair"&&e.i!==d.i).forEach(e=>{const si=I.find(x=>x.id===e.i);const ds=hv(si.lat,si.lng,di.lat,di.lng);const f=.95,g=Math.max(0,1-ds/2000),a=Math.min(1,e.d/90),v=e.r>1e5?.9:.5,o=e.c==="Serviceable"?.95:.7;const cp=parseFloat((f*.25+g*.2+a*.25+v*.15+o*.15).toFixed(3));const av=Math.round(d.e*.85),tr=Math.round(ds*4.2+1200);m.push({id:"M"+(m.length+1),eq:e,dm:d,src:si,dst:di,ds:Math.round(ds),cp,f,g:parseFloat(g.toFixed(3)),a:parseFloat(a.toFixed(3)),v,o,av,tr,xs:si.b!==di.b,net:av-tr})})});return m.sort((a,b)=>b.cp-a.cp).slice(0,12)}
+const M=mk();
+const T={bg:"#f8f9fb",sf:"#fff",sa:"#f1f3f9",bd:"#e2e5ed",bl:"#eef0f5",ac:"#1a56db",al:"#dbeafe",gn:"#059669",gl:"#d1fae5",rd:"#dc2626",rl:"#fee2e2",am:"#d97706",aml:"#fef3c7",amd:"#92400e",pp:"#7c3aed",pl:"#ede9fe",cy:"#0891b2",cl:"#cffafe",tx:"#1e293b",tm:"#475569",td:"#94a3b8"};
+const bc={Army:T.gn,Navy:T.ac,Marines:T.rd,"Air Force":T.pp};
+function Bg({children,color=T.ac,bg}){return<span style={{fontSize:10,fontWeight:700,letterSpacing:.8,textTransform:"uppercase",padding:"3px 8px",borderRadius:4,background:bg||color+"14",color,border:"1px solid "+color+"30",whiteSpace:"nowrap"}}>{children}</span>}
+function Cd({children,style,onClick,hv:h2}){const[hh,sH]=useState(false);return<div onMouseEnter={()=>sH(true)} onMouseLeave={()=>sH(false)} onClick={onClick} style={{background:T.sf,border:"1px solid "+T.bd,borderRadius:10,padding:18,transition:"all .2s",cursor:h2?"pointer":"default",...(hh&&h2?{borderColor:T.ac,boxShadow:"0 2px 12px rgba(26,86,219,.08)",transform:"translateY(-1px)"}:{}),...style}}>{children}</div>}
+function St({l,v,s,color=T.ac}){return<div style={{textAlign:"center"}}><div style={{fontSize:10,fontWeight:600,color:T.td,textTransform:"uppercase",letterSpacing:1.2,marginBottom:6}}>{l}</div><div style={{fontSize:26,fontWeight:800,color,fontFamily:"'JetBrains Mono',monospace"}}>{v}</div>{s&&<div style={{fontSize:11,color:T.td,marginTop:3}}>{s}</div>}</div>}
+function PB({value,max=100,color=T.ac,label}){const p=Math.min(100,value/max*100);return<div style={{display:"flex",alignItems:"center",gap:8}}><div style={{flex:1,height:6,background:T.sa,borderRadius:6,overflow:"hidden"}}><div style={{width:p+"%",height:"100%",background:color,borderRadius:6,transition:"width .5s"}}/></div>{label&&<span style={{fontSize:11,color:T.td,minWidth:36,fontFamily:"'JetBrains Mono',monospace"}}>{Math.round(p)}%</span>}</div>}
+function FR({l,v,w,f}){const c=v>.7?T.gn:v>.4?T.am:T.rd;return<div style={{display:"grid",gridTemplateColumns:"130px 55px 1fr 44px 64px",alignItems:"center",gap:8,padding:"7px 0",borderBottom:"1px solid "+T.bl}}><span style={{fontSize:12,color:T.tm}}>{l}</span><span style={{fontSize:12,fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>{typeof v==="number"?v.toFixed(3):v}</span><PB value={parseFloat(v)*100} color={c}/><span style={{fontSize:10,color:T.td}}>{"×"+w}</span><span style={{fontSize:10,color:T.td,fontStyle:"italic"}}>{f}</span></div>}
+function MP({m,onClose}){const[st,sS]=useState(0);const[tk,sT]=useState(null);const ss=[{t:"Match Signal",i:"\u{1F3AF}",d:"Algorithm identified match",a:"AUTO",b:"Equipment: "+m.eq.t+"\nSource: "+m.src.name+" ("+m.src.b+")\nDest: "+m.dst.name+" ("+m.dst.b+")\nScore: "+m.cp+"\nAvoidance: $"+m.av.toLocaleString()},{t:"DD-448 Generation",i:"\u{1F4C4}",d:"Auto-populates funds transfer request",a:"AUTO",b:"MIPR: MIPR-"+Date.now().toString(36).toUpperCase()+"\nFrom: "+m.dst.name+"\nTo: "+m.src.name+"\nFY2026 | Approp: 2102020\nAmt: $"+m.tr.toLocaleString()+"\nItem: "+m.eq.t+"\nNSN: "+m.eq.n+"\nPeriod: 180 days"},{t:"Appropriation Check",i:"\u2696\uFE0F",d:"Validates regulatory compliance",a:"AUTO",b:"\u2713 Fund type authorized (O&M)\n\u2713 FY2026 Q3 available\n\u2713 Threshold: PASS\n\u2713 Cross-service authority: PASS\n\u2713 Regulatory limit: PASS\n\u2713 No augmentation\n\nAll checks passed."},{t:"Approval Routing",i:"\u{1F4E8}",d:"Transmits to approving officials",a:"AUTO",b:"Routing:\n1. Source PBO \u2192 PENDING\n2. Source RM \u2192 QUEUED\n3. Dest PBO \u2192 QUEUED\n4. Dest RM \u2192 QUEUED\n\nTLS 1.3 | SHA-256\n\n\u23F8 HALTED — awaiting tokens..."},{t:"Officer Authorization",i:"\u{1F510}",d:"HALTED — awaiting CAC/PKI authorization",a:"HUMAN",b:"\u23F8 EXECUTION HALTED\n\nSystem paused for human authorization.\n\nRequired: Digitally signed tokens\nfrom each official's CAC/PKI.\n\nSystem does NOT proceed without approval.\nSystem does NOT make the decision.\nOfficer reviews, decides, signs.\n\nUpon valid tokens, execution resumes."},{t:"Transfer Execution",i:"\u{1F69B}",d:"Tokens received — resumed",a:"AUTO",b:"\u2713 Tokens validated\n\u2713 PKI verified\n\u2713 Condition baseline captured\n\u2713 IoT telemetry recorded\n\u2713 Checklist completed\n\u2713 Route: "+Math.ceil(m.ds/350)+" days\n\u2713 Custody logged\n\nStatus: IN TRANSIT"},{t:"Settlement",i:"\u2705",d:"Audit log closed",a:"AUTO",b:"\u2713 Equipment received\n\u2713 Condition compared: OK\n\u2713 Settlement: $"+m.tr.toLocaleString()+"\n\u2713 DFAS logged\n\u2713 OCS updated\n\nAvoidance: $"+m.net.toLocaleString()}];const c=ss[st];
+return<div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.5)",backdropFilter:"blur(4px)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={onClose}><div onClick={e=>e.stopPropagation()} style={{background:T.sf,border:"1px solid "+T.bd,borderRadius:14,width:"100%",maxWidth:680,maxHeight:"90vh",overflow:"auto",animation:"slideIn .25s"}}>
+<div style={{padding:"16px 22px",borderBottom:"1px solid "+T.bd,display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><div style={{fontSize:15,fontWeight:700}}>MIPR Workflow</div><div style={{fontSize:12,color:T.td}}>{m.eq.t} → {m.dst.name}</div></div><button onClick={onClose} style={{background:"none",border:"none",color:T.td,cursor:"pointer",fontSize:20}}>{"\u2715"}</button></div>
+<div style={{padding:"10px 22px",display:"flex",gap:3,borderBottom:"1px solid "+T.bd}}>{ss.map((_,i)=><div key={i} style={{flex:1,height:4,borderRadius:2,background:i<st?T.gn:i===st?(c.a==="HUMAN"?T.am:T.ac):T.bl,transition:".3s"}}/>)}</div>
+<div style={{padding:22}}><div style={{display:"flex",alignItems:"center",gap:14,marginBottom:18}}><span style={{fontSize:34}}>{c.i}</span><div style={{flex:1}}><div style={{fontSize:11,color:T.td,fontWeight:600}}>STEP {st+1}/{ss.length}</div><div style={{fontSize:17,fontWeight:700}}>{c.t}</div><div style={{fontSize:12,color:T.tm,marginTop:2}}>{c.d}</div></div><Bg color={c.a==="HUMAN"?T.am:T.gn}>{c.a==="HUMAN"?"HUMAN":"AUTO"}</Bg></div>
+{c.a==="HUMAN"&&<div style={{background:T.aml,border:"1px solid "+T.am+"33",borderRadius:8,padding:14,marginBottom:16}}><div style={{fontSize:12,fontWeight:700,color:T.amd,marginBottom:4}}>{"\u26A0"} HUMAN AUTHORIZATION REQUIRED</div><div style={{fontSize:12}}>System halted. Officer must review and sign with CAC/PKI.</div></div>}
+<pre style={{fontSize:12,fontFamily:"'JetBrains Mono',monospace",background:T.sa,border:"1px solid "+T.bl,borderRadius:8,padding:18,whiteSpace:"pre-wrap",margin:0,lineHeight:1.9}}>{c.b}</pre></div>
+<div style={{padding:"14px 22px",borderTop:"1px solid "+T.bd,display:"flex",justifyContent:"space-between"}}><button disabled={st===0} onClick={()=>sS(st-1)} style={{fontSize:13,padding:"9px 18px",borderRadius:6,border:"1px solid "+T.bd,background:T.sf,color:st===0?T.td:T.tx,cursor:st===0?"default":"pointer"}}>{"\u2190 Back"}</button>{st===4&&!tk?<button onClick={()=>{sT(1);setTimeout(()=>sS(5),600)}} style={{fontSize:13,padding:"9px 22px",borderRadius:6,border:"1px solid "+T.am,background:T.aml,color:T.amd,cursor:"pointer",fontWeight:700}}>{"\u{1F510}"} Simulate Auth</button>:<button disabled={st===6} onClick={()=>sS(st+1)} style={{fontSize:13,padding:"9px 18px",borderRadius:6,border:"1px solid "+(st===6?T.bd:T.ac),background:st===6?T.sf:T.al,color:st===6?T.td:T.ac,cursor:st===6?"default":"pointer"}}>Next {"\u2192"}</button>}</div>
+</div></div>}
+function CM({eq,onClose}){const hash="a3f8"+eq.id.replace(/\D/g,"")+"c7e2b1d09f4a6e8c3b5d7f1a2e4c6d8b";return<div style={{position:"fixed",inset:0,background:"rgba(15,23,42,.5)",backdropFilter:"blur(4px)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={onClose}><div onClick={e=>e.stopPropagation()} style={{background:T.sf,border:"1px solid "+T.bd,borderRadius:14,width:"100%",maxWidth:620,maxHeight:"90vh",overflow:"auto",animation:"slideIn .25s"}}><div style={{padding:"16px 22px",borderBottom:"1px solid "+T.bd,display:"flex",justifyContent:"space-between"}}><div style={{fontSize:15,fontWeight:700}}>Condition — {eq.t}</div><button onClick={onClose} style={{background:"none",border:"none",color:T.td,cursor:"pointer",fontSize:20}}>{"\u2715"}</button></div><div style={{padding:22}}><div style={{fontSize:12,fontWeight:700,color:T.ac,marginBottom:10}}>PRE-TRANSFER BASELINE</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:18}}>{[{t:"\u{1F4F8} Visual",d:"Exterior: 4 angles\nInterior: 2 photos\nDamage: 0"},{t:"\u{1F527} Diagnostic",d:"Hours: "+eq.h+"\nPressure: Normal\nDTC: None\nBatt: 12.6V"},{t:"\u{1F4CB} Checklist",d:"Tracks: \u2713\nHydraulics: \u2713\nSafety: \u2713\nFluids: \u2713"}].map((x,j)=><Cd key={j} style={{padding:12}}><div style={{fontSize:11,fontWeight:700,marginBottom:6}}>{x.t}</div><pre style={{fontSize:10,color:T.tm,whiteSpace:"pre-wrap",margin:0,fontFamily:"'JetBrains Mono',monospace"}}>{x.d}</pre></Cd>)}</div><div style={{fontSize:11,color:T.td,marginBottom:4}}>SHA-256:</div><div style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",background:T.sa,padding:10,borderRadius:6,color:T.gn,wordBreak:"break-all",marginBottom:18}}>{hash}</div><div style={{fontSize:12,fontWeight:700,color:T.pp,marginBottom:10}}>FEEDBACK LOOP</div><Cd style={{background:T.sa}}><div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:10,fontSize:11}}><div><span style={{color:T.td}}>Transfers:</span> <b>12</b></div><div><span style={{color:T.td}}>Issues:</span> <b style={{color:T.am}}>2</b></div><div><span style={{color:T.td}}>OCS:</span> <b style={{color:T.gn}}>0.850</b></div></div><div style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",background:T.sf,padding:8,borderRadius:4}}>OCS = 1.0 − (0.9 × 0.167) = <b>0.850</b></div></Cd></div></div></div>}
+function CACLogin({onLogin}){const[stg,sS]=useState("banner");const[pin,sP]=useState("");const[ld,sL]=useState(false);const[er,sE]=useState("");
+if(stg==="banner")return<div style={{minHeight:"100vh",background:"#0f172a",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}><div style={{background:"#1e293b",border:"2px solid #334155",borderRadius:8,maxWidth:700,width:"100%",overflow:"hidden",animation:"fadeIn .4s"}}><div style={{background:"#fbbf24",padding:"10px 20px",display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:18}}>{"\u26A0"}</span><span style={{fontSize:13,fontWeight:700,color:"#1e293b",letterSpacing:.5}}>U.S. DEPARTMENT OF DEFENSE WARNING</span></div><div style={{padding:"24px 28px"}}><div style={{fontSize:12,color:"#e2e8f0",lineHeight:1.9}}><p style={{marginBottom:14}}>You are accessing a U.S. Government (USG) Information System (IS) that is provided for USG-authorized use only.</p><p style={{marginBottom:14}}>By using this IS (which includes any device attached to this IS), you consent to the following conditions:</p><p style={{marginBottom:8}}>- The USG routinely intercepts and monitors communications on this IS for purposes including, but not limited to, penetration testing, COMSEC monitoring, network operations and defense, personnel misconduct (PM), law enforcement (LE), and counterintelligence (CI) investigations.</p><p style={{marginBottom:8}}>- At any time, the USG may inspect and seize data stored on this IS.</p><p style={{marginBottom:8}}>- Communications using, or data stored on, this IS are not private, are subject to routine monitoring, interception, and search, and may be disclosed or used for any USG-authorized purpose.</p><p style={{marginBottom:14}}>- This IS includes security measures (e.g., authentication and access controls) to protect USG interests — not for your personal benefit or privacy.</p><p>- <b style={{color:"#fbbf24"}}>Unauthorized use is prohibited and subject to criminal and civil penalties.</b></p></div><div style={{marginTop:24,display:"flex",justifyContent:"center"}}><button onClick={()=>sS("cert")} style={{fontSize:14,fontWeight:700,padding:"12px 48px",borderRadius:6,border:"none",background:"#fbbf24",color:"#1e293b",cursor:"pointer",letterSpacing:.5}}>I AGREE</button></div></div></div><div style={{marginTop:16,fontSize:10,color:"#64748b"}}>GovLeaseAI — DEMO ENVIRONMENT</div></div>;
+return<div style={{minHeight:"100vh",background:"#0f172a",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}><div style={{background:"#1e293b",border:"2px solid #334155",borderRadius:8,maxWidth:480,width:"100%",overflow:"hidden",animation:"fadeIn .3s"}}><div style={{background:"#1e40af",padding:"16px 24px",textAlign:"center"}}><div style={{fontSize:10,letterSpacing:2,color:"#93c5fd",textTransform:"uppercase",marginBottom:4}}>Department of Defense</div><div style={{fontSize:18,fontWeight:800,color:"#fff",letterSpacing:1}}>CAC / PIV Authentication</div></div><div style={{padding:"28px 32px"}}><div style={{textAlign:"center",marginBottom:24}}><div style={{width:80,height:52,background:"#334155",borderRadius:6,margin:"0 auto 12px",display:"flex",alignItems:"center",justifyContent:"center",border:"1px solid #475569"}}><span style={{fontSize:28}}>{"\u{1F4B3}"}</span></div><div style={{fontSize:13,color:"#e2e8f0",fontWeight:600}}>Insert your CAC/PIV card</div><div style={{fontSize:11,color:"#94a3b8",marginTop:4}}>Select authentication certificate</div></div><div style={{background:"#0f172a",border:"1px solid #334155",borderRadius:6,padding:14,marginBottom:16}}><div style={{fontSize:10,color:"#94a3b8",marginBottom:6,textTransform:"uppercase",letterSpacing:1}}>Certificate Selected</div><div style={{display:"flex",alignItems:"center",gap:10}}><div style={{width:8,height:8,borderRadius:4,background:"#22c55e",animation:"pulse 2s infinite"}}/><div><div style={{fontSize:12,color:"#e2e8f0",fontWeight:600}}>RAJI.ISMAILA.ABIOLA.1234567890</div><div style={{fontSize:10,color:"#64748b"}}>DoD PIV Authentication Certificate</div></div></div></div><div style={{marginBottom:20}}><label style={{fontSize:11,color:"#94a3b8",display:"block",marginBottom:6,letterSpacing:.5}}>ENTER CAC PIN</label><input type="password" maxLength={8} value={pin} onChange={e=>sP(e.target.value.replace(/\D/g,""))} placeholder={"••••••"} style={{width:"100%",padding:"12px 16px",background:"#0f172a",border:"1px solid "+(er?"#ef4444":"#334155"),borderRadius:6,color:"#e2e8f0",fontSize:16,fontFamily:"'JetBrains Mono',monospace",letterSpacing:8,textAlign:"center",outline:"none"}} onKeyDown={e=>{if(e.key==="Enter"&&pin.length>=4){sL(true);setTimeout(()=>onLogin(),1500)}}}/>{er&&<div style={{fontSize:11,color:"#ef4444",marginTop:6}}>{er}</div>}</div><button onClick={()=>{if(pin.length<4){sE("PIN must be at least 4 digits");return}sE("");sL(true);setTimeout(()=>onLogin(),1500)}} disabled={ld} style={{width:"100%",fontSize:14,fontWeight:700,padding:13,borderRadius:6,border:"none",background:ld?"#334155":"#1e40af",color:ld?"#94a3b8":"#fff",cursor:ld?"default":"pointer",letterSpacing:.5,transition:".2s"}}>{ld?<span style={{animation:"pulse 1s infinite"}}>Authenticating...</span>:"Sign In"}</button><div style={{marginTop:16,textAlign:"center",fontSize:10,color:"#64748b"}}>DoD PKI · TLS 1.3 · FIPS 140-2</div></div></div><div style={{marginTop:16,fontSize:10,color:"#475569"}}>GovLeaseAI v1.0 · Patent App. 19/639,216 · DEMO</div></div>}
+function App(){const[au,sA]=useState(false);const[tab,sT]=useState("dashboard");const[mp,sM]=useState(null);const[cd,sC]=useState(null);const[ex,sE]=useState(null);
+if(!au)return<CACLogin onLogin={()=>sA(true)}/>;
+const tA=M.reduce((s,m)=>s+m.net,0),iN=E.filter(e=>e.u<30).length,xN=M.filter(m=>m.xs).length;
+const tabs=[{id:"dashboard",l:"Dashboard"},{id:"equipment",l:"Equipment"},{id:"matching",l:"Matching Engine"},{id:"mipr",l:"Financial Workflow"},{id:"condition",l:"Condition Tracking"},{id:"analytics",l:"Cost Avoidance"}];
+return<div style={{background:T.bg,minHeight:"100vh",color:T.tx}}>
+{mp&&<MP m={mp} onClose={()=>sM(null)}/>}{cd&&<CM eq={cd} onClose={()=>sC(null)}/>}
+<div style={{background:T.sf,borderBottom:"1px solid "+T.bd,padding:"10px 28px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{display:"flex",alignItems:"center",gap:18}}><div style={{fontSize:17,fontWeight:800,letterSpacing:1.5}}><span style={{color:T.ac}}>GOV</span>LEASE<span style={{color:T.gn}}>AI</span></div><Bg color={T.gn}>PHASE 1</Bg><Bg color={T.pp}>CLASS IV</Bg></div><div style={{display:"flex",alignItems:"center",gap:14}}><span style={{fontSize:10,color:T.td}}>Patent 19/639,216</span><div style={{width:1,height:14,background:T.bd}}/><div style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:28,height:28,borderRadius:6,background:T.al,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:T.ac}}>IR</div><div><div style={{fontSize:11,fontWeight:600}}>Ismaila Raji</div><div style={{fontSize:9,color:T.td}}>SECRET · SDVOSB</div></div></div></div></div>
+<div style={{background:T.sf,borderBottom:"1px solid "+T.bd,padding:"0 28px",display:"flex",overflowX:"auto"}}>{tabs.map(t=><button key={t.id} onClick={()=>sT(t.id)} style={{fontSize:12,fontWeight:tab===t.id?700:500,padding:"13px 20px",background:"none",border:"none",borderBottom:tab===t.id?"2px solid "+T.ac:"2px solid transparent",color:tab===t.id?T.ac:T.tm,cursor:"pointer",transition:".15s",whiteSpace:"nowrap"}}>{t.l}</button>)}</div>
+<div style={{padding:28,maxWidth:1300,margin:"0 auto",animation:"fadeIn .3s"}}>
+{tab==="dashboard"&&<><div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:14,marginBottom:24}}><Cd><St l="Equipment" v={E.length} s="tracked"/></Cd><Cd><St l="Idle" v={iN} s={Math.round(iN/E.length*100)+"% fleet"} color={T.am}/></Cd><Cd><St l="Matches" v={M.length} s="signals" color={T.gn}/></Cd><Cd><St l="Cross-Svc" v={xN} s="inter-branch" color={T.pp}/></Cd><Cd><St l="Avoidance" v={"$"+(tA/1e6).toFixed(1)+"M"} s="savings" color={T.gn}/></Cd></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}><Cd><div style={{fontSize:13,fontWeight:700,marginBottom:14}}>9 Subsystems</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>{["Data Ingestion","Normalization","Predictive Matching","Procurement Alerts","Financial Recon","Condition Docs","Damage Adjudication","Feedback Engine","Heuristic Mapper"].map((s,i)=><div key={i} style={{fontSize:10,padding:"8px 10px",background:T.sa,borderRadius:6,border:"1px solid "+T.bl,display:"flex",alignItems:"center",gap:6}}><span style={{color:T.gn,fontSize:7}}>{"\u25CF"}</span>{s}</div>)}</div></Cd><Cd><div style={{fontSize:13,fontWeight:700,marginBottom:14}}>Top Matches</div>{M.slice(0,5).map(m=><div key={m.id} onClick={()=>{sT("matching");sE(m.id)}} style={{display:"flex",justifyContent:"space-between",padding:"9px 0",borderBottom:"1px solid "+T.bl,cursor:"pointer"}}><div><div style={{fontSize:12,fontWeight:600}}>{m.eq.t}</div><div style={{fontSize:11,color:T.td}}>{m.src.name} → {m.dst.name}</div></div><div style={{textAlign:"right"}}><div style={{fontSize:13,fontWeight:700,color:T.gn}}>${m.net.toLocaleString()}</div><div style={{fontSize:10,color:T.td}}>{(m.cp*100).toFixed(0)}%</div></div></div>)}</Cd></div></>}
+{tab==="equipment"&&<><div style={{fontSize:13,fontWeight:700,marginBottom:16}}>Equipment Index — DPAS Batch</div><Cd style={{padding:0,overflow:"hidden"}}><div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr style={{background:T.sa}}>{["ID","Equipment","NSN","Installation","Branch","Util","Idle","Cond","Hours","Value",""].map(h=><th key={h} style={{fontSize:10,fontWeight:700,color:T.td,textAlign:"left",padding:"10px 12px",borderBottom:"1px solid "+T.bd,textTransform:"uppercase",letterSpacing:.8}}>{h}</th>)}</tr></thead><tbody>{E.map(e=>{const inst=I.find(x=>x.id===e.i);const uc=e.u<20?T.rd:e.u<40?T.am:T.gn;return<tr key={e.id} style={{borderBottom:"1px solid "+T.bl}}><td style={{fontSize:11,padding:"10px 12px",fontFamily:"'JetBrains Mono',monospace"}}>{e.id}</td><td style={{fontSize:12,padding:"10px 12px",fontWeight:600}}>{e.t}</td><td style={{fontSize:10,padding:"10px 12px",color:T.td,fontFamily:"'JetBrains Mono',monospace"}}>{e.n}</td><td style={{fontSize:11,padding:"10px 12px"}}>{inst?.name}</td><td style={{padding:"10px 12px"}}><Bg color={bc[inst?.b]||T.ac}>{inst?.b}</Bg></td><td style={{padding:"10px 12px",width:110}}><PB value={e.u} color={uc} label/></td><td style={{fontSize:12,padding:"10px 12px",fontWeight:600,color:e.d>60?T.rd:T.tx}}>{e.d}d</td><td style={{padding:"10px 12px"}}><Bg color={e.c==="Serviceable"?T.gn:e.c==="Fair"?T.am:T.rd}>{e.c}</Bg></td><td style={{fontSize:11,padding:"10px 12px",color:T.tm}}>{e.h.toLocaleString()}</td><td style={{fontSize:11,padding:"10px 12px"}}>${e.r.toLocaleString()}</td><td style={{padding:"10px 12px"}}><button onClick={()=>sC(e)} style={{fontSize:10,padding:"5px 12px",borderRadius:4,border:"1px solid "+T.cy+"44",background:T.cl,color:T.cy,cursor:"pointer",fontWeight:600}}>Inspect</button></td></tr>})}</tbody></table></div></Cd></>}
+{tab==="matching"&&<><div style={{fontSize:13,fontWeight:700,marginBottom:4}}>Matching Engine</div><div style={{fontSize:12,color:T.td,marginBottom:18,fontFamily:"'JetBrains Mono',monospace"}}>Composite = (FES×.25)+(GPS×.20)+(TAS×.25)+(FVS×.15)+(OCS×.15) × DQM</div>{M.map(m=>{const xp=ex===m.id;return<Cd key={m.id} style={{marginBottom:10,border:xp?"1px solid "+T.ac:undefined}} hv onClick={()=>sE(xp?null:m.id)}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{display:"flex",alignItems:"center",gap:16}}><div style={{fontSize:24,fontWeight:800,color:T.ac,fontFamily:"'JetBrains Mono',monospace",minWidth:56}}>{(m.cp*100).toFixed(0)}%</div><div><div style={{fontSize:13,fontWeight:600}}>{m.eq.t}</div><div style={{fontSize:11,color:T.td}}>{m.src.name} → {m.dst.name} · {m.ds}mi</div></div>{m.xs&&<Bg color={T.pp}>CROSS-SVC</Bg>}</div><div style={{display:"flex",alignItems:"center",gap:16}}><div style={{textAlign:"right"}}><div style={{fontSize:15,fontWeight:700,color:T.gn}}>${m.net.toLocaleString()}</div><div style={{fontSize:10,color:T.td}}>net avoid</div></div><button onClick={e=>{e.stopPropagation();sM(m)}} style={{fontSize:10,padding:"9px 16px",borderRadius:6,border:"1px solid "+T.ac,background:T.al,color:T.ac,cursor:"pointer",fontWeight:700}}>MIPR →</button></div></div>{xp&&<div style={{marginTop:16,paddingTop:16,borderTop:"1px solid "+T.bl}}><div style={{fontSize:11,fontWeight:700,color:T.ac,marginBottom:8}}>FACTOR DECOMPOSITION</div><FR l="Equipment Similarity" v={m.f} w=".25" f="Taxonomy"/><FR l="Geographic Proximity" v={m.g} w=".20" f="Haversine"/><FR l="Temporal Availability" v={m.a} w=".25" f="Idle/90"/><FR l="Financial Value" v={m.v} w=".15" f="Repl $"/><FR l="Org Condition" v={m.o} w=".15" f="Feedback"/></div>}</Cd>})}</>}
+{tab==="mipr"&&<><div style={{fontSize:13,fontWeight:700,marginBottom:4}}>Financial Reconciliation — State Machine</div><div style={{fontSize:12,color:T.td,marginBottom:18}}>Click a match for the 7-step workflow. Step 5 halts for human auth.</div><div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:5,marginBottom:26}}>{["Match","\u{1F4C4} Form","\u2696\uFE0F Check","\u{1F4E8} Route","\u{1F510} AUTH","\u{1F69B} Execute","\u2705 Settle"].map((s,i)=><div key={i} style={{fontSize:10,padding:"12px 6px",background:i===4?T.aml:T.sa,border:"1px solid "+(i===4?T.am+"33":T.bl),borderRadius:8,textAlign:"center",fontWeight:i===4?700:500,color:i===4?T.amd:T.tm}}>{s}<div style={{fontSize:8,marginTop:4,fontWeight:700}}>{i===4?"HUMAN":"AUTO"}</div></div>)}</div>{M.slice(0,6).map(m=><Cd key={m.id} hv onClick={()=>sM(m)} style={{marginBottom:8,padding:14}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{display:"flex",alignItems:"center",gap:14}}><span style={{fontSize:15,fontWeight:800,color:T.ac,fontFamily:"'JetBrains Mono',monospace"}}>{(m.cp*100).toFixed(0)}%</span><div><div style={{fontSize:12,fontWeight:600}}>{m.eq.t}</div><div style={{fontSize:11,color:T.td}}>{m.src.name} → {m.dst.name}</div></div>{m.xs&&<Bg color={T.pp}>CROSS-SVC</Bg>}</div><div style={{fontSize:13,fontWeight:700,color:T.gn}}>${m.net.toLocaleString()}</div></div></Cd>)}</>}
+{tab==="condition"&&<><div style={{fontSize:13,fontWeight:700,marginBottom:4}}>Condition Documentation & Feedback</div><div style={{fontSize:12,color:T.td,marginBottom:18}}>3-modality capture · SHA-256 · Feeds back into OCS</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginBottom:24}}>{[{t:"\u{1F4F8} Visual",c:T.ac,items:["Multi-angle photos","Interior shots","Damage close-ups","SHA-256 hashed","GPS + timestamp","Immutable log"]},{t:"\u{1F527} IoT Diagnostics",c:T.gn,items:["Engine DTC","Fluid pressure","Hour meter","Battery voltage","Hydraulic status","All hashed"]},{t:"\u{1F4CB} Checklist",c:T.pp,items:["Tracks/tires","Hydraulics","Safety equip","Fluid levels","Digital signature","Hash recorded"]}].map((m,i)=><Cd key={i} style={{borderTop:"3px solid "+m.c}}><div style={{fontSize:12,fontWeight:700,marginBottom:10}}>{m.t}</div>{m.items.map((x,j)=><div key={j} style={{fontSize:11,color:T.tm,lineHeight:2}}>{x}</div>)}</Cd>)}</div><Cd><div style={{fontSize:12,fontWeight:700,color:T.pp,marginBottom:14}}>Closed-Loop Feedback</div><div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:5}}>{["Transfer","Inspect","Compare","Score","OCS \u21BB"].map((s,i)=><div key={i} style={{fontSize:10,padding:12,background:T.sa,border:"1px solid "+T.bl,borderRadius:8,textAlign:"center"}}><div style={{fontSize:20,marginBottom:4}}>{["\u{1F69B}","\u{1F50D}","\u2696\uFE0F","\u{1F4CA}","\u21BB"][i]}</div>{s}</div>)}</div><div style={{marginTop:14,fontSize:11,color:T.tm,padding:12,background:T.sa,borderRadius:6,fontFamily:"'JetBrains Mono',monospace"}}>OCS = 1.0 − (decay × disc_rate) → poor stewards deprioritized</div></Cd><div style={{fontSize:12,fontWeight:700,marginTop:24,marginBottom:10}}>Click to Inspect</div><div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10}}>{E.filter(e=>e.u<40).slice(0,5).map(e=><Cd key={e.id} hv onClick={()=>sC(e)} style={{padding:12}}><div style={{fontSize:11,fontWeight:600}}>{e.t.split(" ").slice(0,2).join(" ")}</div><div style={{fontSize:10,color:T.td}}>{I.find(x=>x.id===e.i)?.name}</div><div style={{marginTop:6}}><Bg color={e.c==="Serviceable"?T.gn:T.am}>{e.c}</Bg></div></Cd>)}</div></>}
+{tab==="analytics"&&<><div style={{fontSize:13,fontWeight:700,marginBottom:18}}>Cost Avoidance — Pilot Summary</div><div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:24}}><Cd><St l="Total" v={"$"+(tA/1e6).toFixed(1)+"M"} color={T.gn}/></Cd><Cd><St l="Matches" v={M.length} color={T.ac}/></Cd><Cd><St l="Avg" v={"$"+Math.round(tA/M.length/1000)+"K"} color={T.gn}/></Cd><Cd><St l="ROI" v={(tA/575000).toFixed(1)+"x"} s="on $575K" color={T.gn}/></Cd></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}><Cd><div style={{fontSize:12,fontWeight:700,marginBottom:14}}>By Source</div>{I.filter(inst=>M.some(m=>m.src.id===inst.id)).map(inst=>{const ia=M.filter(m=>m.src.id===inst.id).reduce((s,m)=>s+m.net,0);return<div key={inst.id} style={{marginBottom:10}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span style={{fontSize:12}}>{inst.name}</span><span style={{fontSize:12,color:T.gn,fontWeight:700}}>${(ia/1000).toFixed(0)}K</span></div><PB value={ia} max={tA} color={T.gn}/></div>})}</Cd><Cd><div style={{fontSize:12,fontWeight:700,marginBottom:14}}>Metrics</div>{[["Equipment",E.length],["Idle Rate",Math.round(iN/E.length*100)+"%"],["Cross-Svc",xN+"/"+M.length],["Confidence",(M.reduce((s,m)=>s+m.cp,0)/M.length*100).toFixed(1)+"%"],["Investment","$575K"],["Source","DPAS Batch"]].map(([k,v],i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid "+T.bl}}><span style={{fontSize:12,color:T.td}}>{k}</span><span style={{fontSize:12,fontWeight:600}}>{v}</span></div>)}</Cd></div></>}
+</div>
+<div style={{borderTop:"1px solid "+T.bd,padding:"14px 28px",textAlign:"center",background:T.sf}}><span style={{fontSize:10,color:T.td}}>DEMO — SYNTHETIC DATA — NOT CONNECTED TO GOV SYSTEMS | Izy Global Services LLC · SDVOSB · Patent App. 19/639,216</span></div>
+</div>}
+ReactDOM.render(<App/>,document.getElementById("root"));
+</script>
+</body>
+</html>
