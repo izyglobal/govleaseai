@@ -1,617 +1,589 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovLeaseAI</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a202c;font-size:14px;}
-::-webkit-scrollbar{width:6px;height:6px;}
-::-webkit-scrollbar-track{background:#f0f0f0;}
-::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px;}
-button{font-family:inherit;cursor:pointer;outline:none;}
-select,input{font-family:inherit;outline:none;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.fade-in{animation:fadeIn 0.3s ease forwards;}
-</style>
-</head>
-<body>
-<div id="root"></div>
-<script type="text/babel">
-const {useState,useMemo,useEffect}=React;
+import { useState, useEffect, useCallback } from "react";
 
-// ===== DATA =====
-const INSTALLATIONS=[
-  {id:"hood",name:"Fort Cavazos",branch:"Army",state:"TX",lat:31.13,lng:-97.78},
-  {id:"bliss",name:"Fort Bliss",branch:"Army",state:"TX",lat:31.81,lng:-106.42},
-  {id:"sill",name:"Fort Sill",branch:"Army",state:"OK",lat:34.65,lng:-98.40},
-  {id:"polk",name:"Fort Johnson",branch:"Army",state:"LA",lat:31.05,lng:-93.20},
-  {id:"lejeune",name:"Camp Lejeune",branch:"Marines",state:"NC",lat:34.62,lng:-77.35},
-  {id:"pendleton",name:"Camp Pendleton",branch:"Marines",state:"CA",lat:33.30,lng:-117.35},
-  {id:"norfolk",name:"NB Norfolk",branch:"Navy",state:"VA",lat:36.95,lng:-76.33},
-  {id:"ellsworth",name:"Ellsworth AFB",branch:"Air Force",state:"SD",lat:44.15,lng:-103.10},
+// ── Data ──
+const INSTALLATIONS = [
+  { id: "CAVAZOS", name: "Fort Cavazos", branch: "Army", lat: 31.13, lng: -97.78, state: "TX" },
+  { id: "BLISS", name: "Fort Bliss", branch: "Army", lat: 31.81, lng: -106.42, state: "TX" },
+  { id: "HOOD_NAVY", name: "NAS Corpus Christi", branch: "Navy", lat: 27.69, lng: -97.29, state: "TX" },
+  { id: "SILL", name: "Fort Sill", branch: "Army", lat: 34.65, lng: -98.40, state: "OK" },
+  { id: "PENDLETON", name: "Camp Pendleton", branch: "Marines", lat: 33.30, lng: -117.35, state: "CA" },
+  { id: "HUACHUCA", name: "Fort Huachuca", branch: "Army", lat: 31.55, lng: -110.35, state: "AZ" },
+  { id: "TINKER", name: "Tinker AFB", branch: "Air Force", lat: 35.41, lng: -97.39, state: "OK" },
+  { id: "CAMPBELL", name: "Fort Campbell", branch: "Army", lat: 36.66, lng: -87.47, state: "KY" },
 ];
-const EQUIP_TYPES=[
-  {type:"CAT D6 Bulldozer",nsn:"3805-01-456-7890",cost:285000,img:"https://images.unsplash.com/photo-1621922688758-8d99f5697d02?w=300&h=200&fit=crop"},
-  {type:"CAT 320 Excavator",nsn:"3805-01-567-8901",cost:342000,img:"https://images.unsplash.com/photo-1580901368919-7738efb0f228?w=300&h=200&fit=crop"},
-  {type:"CAT 140M Grader",nsn:"3805-01-234-5678",cost:410000,img:"https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=300&h=200&fit=crop"},
-  {type:"CAT 950 Wheel Loader",nsn:"3805-01-678-9012",cost:265000,img:"https://images.unsplash.com/photo-1629118573298-eed895217e69?w=300&h=200&fit=crop"},
-  {type:"CASE 580 Backhoe",nsn:"3805-01-345-6789",cost:112000,img:"https://images.unsplash.com/photo-1621922688758-8d99f5697d02?w=300&h=200&fit=crop"},
-  {type:"Bobcat T770 Skid Steer",nsn:"3805-01-789-0123",cost:78000,img:"https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=300&h=200&fit=crop"},
-];
-const STATUSES=["Active","Idle","Maintenance","In-Transit","Reserved"];
 
-function seededRng(s){return function(){s=(s*16807)%2147483647;return(s-1)/2147483646;};}
-function genEquip(){
-  const r=seededRng(42),items=[];let id=1000;
-  INSTALLATIONS.forEach(inst=>{
-    const n=6+Math.floor(r()*10);
-    for(let i=0;i<n;i++){
-      const eq=EQUIP_TYPES[Math.floor(r()*EQUIP_TYPES.length)];
-      const sw=[0.28,0.38,0.1,0.04,0.2];let rv=r(),c=0,si=0;
-      for(let s=0;s<sw.length;s++){c+=sw[s];if(rv<c){si=s;break;}}
-      const ut=si===1?Math.floor(r()*22):si===0?40+Math.floor(r()*55):Math.floor(r()*55);
-      const di=si===1?15+Math.floor(r()*110):0;
-      items.push({
-        id:`C-${String(++id).padStart(5,'0')}`,type:eq.type,nsn:eq.nsn,cost:eq.cost,img:eq.img,
-        instId:inst.id,instName:inst.name,branch:inst.branch,state:inst.state,
-        status:STATUSES[si],utilization:ut,daysIdle:di,
-        condition:r()>0.18?"Good":"Fair",
-        availDate:si===1?`${['03','04','05'][Math.floor(r()*3)]}/${String(1+Math.floor(r()*28)).padStart(2,'0')}/2026`:"N/A",
-      });
-    }
-  });
-  return items;
+const EQUIPMENT = [
+  { id: "EQ-001", type: "CAT D6T Bulldozer", nsn: "3805-01-547-2345", install: "CAVAZOS", branch: "Army", util: 12, daysIdle: 87, condition: "Serviceable", replacement: 285000, status: "Idle", hours: 4200, lastService: "2026-01-15" },
+  { id: "EQ-002", type: "John Deere 350G Excavator", nsn: "3805-01-612-8901", install: "CAVAZOS", branch: "Army", util: 8, daysIdle: 112, condition: "Serviceable", replacement: 342000, status: "Idle", hours: 3800, lastService: "2025-12-20" },
+  { id: "EQ-003", type: "CAT 140M3 Motor Grader", nsn: "3805-01-589-4567", install: "SILL", branch: "Army", util: 22, daysIdle: 45, condition: "Fair", replacement: 310000, status: "Idle", hours: 6100, lastService: "2026-02-10" },
+  { id: "EQ-004", type: "CAT 950M Wheel Loader", nsn: "3805-01-634-7890", install: "BLISS", branch: "Army", util: 65, daysIdle: 0, condition: "Serviceable", replacement: 265000, status: "Active", hours: 2900, lastService: "2026-03-01" },
+  { id: "EQ-005", type: "Komatsu PC210 Excavator", nsn: "3805-01-598-1234", install: "PENDLETON", branch: "Marines", util: 15, daysIdle: 68, condition: "Serviceable", replacement: 298000, status: "Idle", hours: 3200, lastService: "2026-01-28" },
+  { id: "EQ-006", type: "CAT D8T Bulldozer", nsn: "3805-01-555-6789", install: "HOOD_NAVY", branch: "Navy", util: 5, daysIdle: 134, condition: "Fair", replacement: 425000, status: "Idle", hours: 7500, lastService: "2025-11-15" },
+  { id: "EQ-007", type: "Volvo L120H Wheel Loader", nsn: "3805-01-622-3456", install: "CAMPBELL", branch: "Army", util: 18, daysIdle: 52, condition: "Serviceable", replacement: 275000, status: "Idle", hours: 4800, lastService: "2026-02-22" },
+  { id: "EQ-008", type: "John Deere 772G Motor Grader", nsn: "3805-01-601-7890", install: "HUACHUCA", branch: "Army", util: 30, daysIdle: 31, condition: "Serviceable", replacement: 295000, status: "Underutilized", hours: 3500, lastService: "2026-03-10" },
+  { id: "EQ-009", type: "CAT 320F Excavator", nsn: "3805-01-645-2345", install: "TINKER", branch: "Air Force", util: 10, daysIdle: 95, condition: "Needs Repair", replacement: 315000, status: "Idle", hours: 5800, lastService: "2025-10-05" },
+  { id: "EQ-010", type: "Komatsu D65 Bulldozer", nsn: "3805-01-578-9012", install: "SILL", branch: "Army", util: 42, daysIdle: 14, condition: "Serviceable", replacement: 255000, status: "Active", hours: 2100, lastService: "2026-03-25" },
+];
+
+const DEMANDS = [
+  { id: "DEM-001", type: "Bulldozer", install: "BLISS", branch: "Army", urgency: "High", requisition: "W91247-26-R-0042", est: 285000 },
+  { id: "DEM-002", type: "Excavator", install: "SILL", branch: "Army", urgency: "Medium", requisition: "W91247-26-R-0058", est: 342000 },
+  { id: "DEM-003", type: "Motor Grader", install: "CAMPBELL", branch: "Army", urgency: "High", requisition: "W91247-26-R-0061", est: 310000 },
+  { id: "DEM-004", type: "Wheel Loader", install: "HUACHUCA", branch: "Army", urgency: "Low", requisition: "W91247-26-R-0073", est: 265000 },
+  { id: "DEM-005", type: "Excavator", install: "PENDLETON", branch: "Marines", urgency: "Medium", requisition: "M67004-26-R-0019", est: 298000 },
+];
+
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 3959;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
-function genDemands(){return[
-  {id:"DEM-001",instId:"bliss",type:"CAT D6 Bulldozer",urgency:"High",date:"03/01/2026",status:"Open"},
-  {id:"DEM-002",instId:"sill",type:"CAT 320 Excavator",urgency:"Medium",date:"02/20/2026",status:"Open"},
-  {id:"DEM-003",instId:"lejeune",type:"CAT 950 Wheel Loader",urgency:"High",date:"03/10/2026",status:"Open"},
-  {id:"DEM-004",instId:"pendleton",type:"CASE 580 Backhoe",urgency:"Low",date:"03/05/2026",status:"Open"},
-  {id:"DEM-005",instId:"norfolk",type:"CAT 140M Grader",urgency:"Medium",date:"02/28/2026",status:"Open"},
-  {id:"DEM-006",instId:"hood",type:"CAT 320 Excavator",urgency:"High",date:"03/12/2026",status:"Open"},
-  {id:"DEM-007",instId:"polk",type:"Bobcat T770 Skid Steer",urgency:"High",date:"03/15/2026",status:"Open"},
-];}
-function dist(a,b){
-  const m=Object.fromEntries(INSTALLATIONS.map(i=>[i.id,i]));
-  const[la,lb]=[m[a],m[b]];if(!la||!lb)return 9999;
-  const R=3959,dLa=(lb.lat-la.lat)*Math.PI/180,dLo=(lb.lng-la.lng)*Math.PI/180;
-  const x=Math.sin(dLa/2)**2+Math.cos(la.lat*Math.PI/180)*Math.cos(lb.lat*Math.PI/180)*Math.sin(dLo/2)**2;
-  return Math.round(R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)));
-}
-function runEngine(eq,dem){
-  const m=[];
-  dem.forEach(d=>{
-    eq.filter(e=>e.type===d.type&&e.status==="Idle"&&e.condition==="Good"&&e.instId!==d.instId)
-    .forEach(e=>{
-      const di=dist(e.instId,d.instId),tc=Math.round(di*4.2+1200),ca=e.cost-tc;
-      const co=Math.min(97,Math.max(58,100-(di/50)-(e.daysIdle>90?5:0)+(d.urgency==="High"?8:0)));
-      m.push({
-        id:`M-${String(m.length+1).padStart(3,'0')}`,demId:d.id,eqId:e.id,type:e.type,img:e.img,
-        srcName:e.instName,srcBranch:e.branch,srcState:e.state,
-        dstName:INSTALLATIONS.find(i=>i.id===d.instId)?.name,
-        dstBranch:INSTALLATIONS.find(i=>i.id===d.instId)?.branch,
-        distance:di,transportCost:tc,replaceCost:e.cost,avoidance:ca,
-        confidence:Math.round(co),urgency:d.urgency,daysIdle:e.daysIdle,
-        miprStatus:"Pending",
-      });
+
+function computeMatches() {
+  const matches = [];
+  DEMANDS.forEach(d => {
+    const destInst = INSTALLATIONS.find(i => i.id === d.install);
+    EQUIPMENT.filter(e => {
+      const typeMatch = e.type.toLowerCase().includes(d.type.toLowerCase());
+      return typeMatch && e.util < 40 && e.condition !== "Needs Repair" && e.install !== d.install;
+    }).forEach(e => {
+      const srcInst = INSTALLATIONS.find(i => i.id === e.install);
+      const dist = haversine(srcInst.lat, srcInst.lng, destInst.lat, destInst.lng);
+      const fes = e.type.toLowerCase().includes(d.type.toLowerCase()) ? 0.95 : 0.6;
+      const gps = Math.max(0, 1 - dist / 2000);
+      const tas = Math.min(1, e.daysIdle / 90);
+      const fvs = e.replacement > 100000 ? 0.9 : 0.5;
+      const ocs = e.condition === "Serviceable" ? 0.95 : 0.7;
+      const composite = (fes*0.25 + gps*0.20 + tas*0.25 + fvs*0.15 + ocs*0.15).toFixed(3);
+      const avoidance = Math.round(d.est * 0.85);
+      const transport = Math.round(dist * 4.2 + 1200);
+      const crossService = srcInst.branch !== destInst.branch;
+      matches.push({ id: `M-${matches.length+1}`, eq: e, demand: d, src: srcInst, dest: destInst, dist: Math.round(dist), composite: parseFloat(composite), fes, gps: gps.toFixed(3), tas: tas.toFixed(3), fvs, ocs, avoidance, transport, crossService, net: avoidance - transport });
     });
   });
-  return m.sort((a,b)=>b.confidence-a.confidence).slice(0,20);
+  return matches.sort((a,b) => b.composite - a.composite).slice(0, 12);
 }
 
-const MIPR_STEPS=["Return Initiated","Schedule Pickup","Equipment Collection","Condition Verification","Return Complete"];
+const MATCHES = computeMatches();
 
-// ===== STYLES =====
-const navy="#1a2332",accent="#2563eb",green="#16a34a",amber="#d97706",red="#dc2626",
-  bg="#f5f7fa",white="#ffffff",border="#e5e7eb",textDark="#1a202c",textMed="#4a5568",textLight="#9ca3af";
+// ── Styles ──
+const colors = {
+  bg: "#0a0e17", surface: "#111827", surfaceLight: "#1a2236", border: "#1e293b",
+  accent: "#3b82f6", accentDim: "#1e3a5f", green: "#10b981", greenDim: "#064e3b",
+  red: "#ef4444", amber: "#f59e0b", amberDim: "#78350f", text: "#e2e8f0", textDim: "#64748b",
+  purple: "#8b5cf6", cyan: "#06b6d4",
+};
 
-// ===== COMPONENTS =====
-function Badge({text,color}){
-  const colors={High:red,Medium:amber,Low:textLight,Active:green,Idle:amber,
-    Maintenance:red,"In-Transit":accent,Reserved:textLight,Open:accent,
-    Pending:amber,Approved:green,Denied:red,Good:green,Fair:amber,
-    Army:green,Marines:red,Navy:accent,"Air Force":"#6366f1"};
-  const c=colors[text]||color||textLight;
-  return <span style={{display:"inline-block",padding:"3px 10px",borderRadius:12,fontSize:11,fontWeight:600,
-    background:c+"15",color:c,border:`1px solid ${c}30`}}>{text}</span>;
+const base = {
+  fontFamily: "'JetBrains Mono', 'Fira Code', 'SF Mono', monospace",
+  fontSize: 13, color: colors.text, lineHeight: 1.5,
+};
+
+// ── Components ──
+function Badge({ children, color = colors.accent, bg }) {
+  return <span style={{ ...base, fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase",
+    padding: "3px 8px", borderRadius: 3, background: bg || color + "22", color, border: `1px solid ${color}44`,
+    whiteSpace: "nowrap" }}>{children}</span>;
 }
 
-function StatBox({label,value,sub}){
-  return <div style={{background:white,borderRadius:10,padding:"18px 20px",flex:1,minWidth:150,
-    border:`1px solid ${border}`,boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
-    <div style={{fontSize:28,fontWeight:700,color:textDark}}>{value}</div>
-    <div style={{fontSize:12,color:textMed,marginTop:2}}>{label}</div>
-    {sub&&<div style={{fontSize:11,color:textLight,marginTop:2}}>{sub}</div>}
+function Card({ children, style, onClick, hoverable }) {
+  const [hovered, setHovered] = useState(false);
+  return <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onClick={onClick}
+    style={{ background: colors.surface, border: `1px solid ${hovered && hoverable ? colors.accent : colors.border}`,
+      borderRadius: 6, padding: 16, transition: "all 0.2s", cursor: hoverable ? "pointer" : "default",
+      ...(hovered && hoverable ? { transform: "translateY(-1px)", boxShadow: `0 4px 20px ${colors.accent}15` } : {}),
+      ...style }}>{children}</div>;
+}
+
+function Stat({ label, value, sub, color = colors.accent }) {
+  return <div style={{ textAlign: "center" }}>
+    <div style={{ ...base, fontSize: 11, color: colors.textDim, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}>{label}</div>
+    <div style={{ ...base, fontSize: 28, fontWeight: 700, color }}>{value}</div>
+    {sub && <div style={{ ...base, fontSize: 11, color: colors.textDim, marginTop: 2 }}>{sub}</div>}
   </div>;
 }
 
-function Card({children,style={}}){
-  return <div style={{background:white,borderRadius:10,border:`1px solid ${border}`,
-    boxShadow:"0 1px 3px rgba(0,0,0,0.04)",overflow:"hidden",...style}}>{children}</div>;
+function ProgressBar({ value, max = 100, color = colors.accent, height = 6, showLabel }) {
+  const pct = Math.min(100, (value / max) * 100);
+  return <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <div style={{ flex: 1, height, background: colors.border, borderRadius: height/2, overflow: "hidden" }}>
+      <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: height/2, transition: "width 0.6s ease" }} />
+    </div>
+    {showLabel && <span style={{ ...base, fontSize: 11, color: colors.textDim, minWidth: 36 }}>{Math.round(pct)}%</span>}
+  </div>;
 }
 
-function CardHeader({children}){
-  return <div style={{padding:"14px 20px",borderBottom:`1px solid ${border}`,fontWeight:600,fontSize:14,
-    display:"flex",justifyContent:"space-between",alignItems:"center"}}>{children}</div>;
+function FactorRow({ label, value, weight, formula }) {
+  const barColor = value > 0.7 ? colors.green : value > 0.4 ? colors.amber : colors.red;
+  return <div style={{ display: "grid", gridTemplateColumns: "140px 60px 1fr 50px 70px", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: `1px solid ${colors.border}` }}>
+    <span style={{ ...base, fontSize: 12, color: colors.textDim }}>{label}</span>
+    <span style={{ ...base, fontSize: 12, fontWeight: 600 }}>{typeof value === "number" ? value.toFixed(3) : value}</span>
+    <ProgressBar value={parseFloat(value)*100} color={barColor} />
+    <span style={{ ...base, fontSize: 10, color: colors.textDim }}>×{weight}</span>
+    <span style={{ ...base, fontSize: 10, color: colors.textDim, fontStyle: "italic" }}>{formula}</span>
+  </div>;
 }
 
-// ===== APP =====
-function App(){
-  const [page,setPage]=useState("dashboard");
-  const [equipment]=useState(genEquip);
-  const [demands]=useState(genDemands);
-  const matches=useMemo(()=>runEngine(equipment,demands),[equipment,demands]);
-  const [search,setSearch]=useState("");
-  const [selMatch,setSelMatch]=useState(null);
-  const [miprStep,setMiprStep]=useState(0);
-  const [fBranch,setFBranch]=useState("All");
-  const [fStatus,setFStatus]=useState("All");
-  const [reqTab,setReqTab]=useState("Pending");
+// ── MIPR Workflow State Machine ──
+function MIPRWorkflow({ match, onClose }) {
+  const [step, setStep] = useState(0);
+  const [token, setToken] = useState(null);
 
-  const idle=equipment.filter(e=>e.status==="Idle").length;
-  const totalCA=matches.reduce((s,m)=>s+m.avoidance,0);
-  const crossSvc=matches.filter(m=>m.srcBranch!==m.dstBranch).length;
-
-  const filtered=equipment.filter(e=>{
-    const b=fBranch==="All"||e.branch===fBranch;
-    const s=fStatus==="All"||e.status===fStatus;
-    const q=!search||e.type.toLowerCase().includes(search.toLowerCase())||e.id.toLowerCase().includes(search.toLowerCase());
-    return b&&s&&q;
-  });
-
-  const navItems=[
-    {id:"dashboard",label:"Dashboard"},
-    {id:"equipment",label:"Equipment"},
-    {id:"matches",label:"AI Matches"},
-    {id:"requests",label:"Transfer Requests"},
-    {id:"transportation",label:"Transportation"},
-    {id:"reports",label:"Reports"},
+  const steps = [
+    { title: "Match Signal Received", icon: "🎯", desc: "Algorithm identified viable cross-service match", status: "AUTOMATED",
+      detail: `Equipment: ${match.eq.type}\nSource: ${match.src.name} (${match.src.branch})\nDestination: ${match.dest.name} (${match.dest.branch})\nComposite Score: ${match.composite}\nCost Avoidance: $${match.avoidance.toLocaleString()}` },
+    { title: "DD Form 448 Generation", icon: "📄", desc: "System auto-populates standardized funds transfer request", status: "AUTOMATED",
+      detail: `MIPR Number: MIPR-${Date.now().toString(36).toUpperCase()}\nRequesting Activity: ${match.dest.name}\nPerforming Activity: ${match.src.name}\nFiscal Year: FY2026\nAppropriation: 2102020\nAmount: $${match.transport.toLocaleString()} (transport)\nDescription of Services: Temporary inter-service transfer of ${match.eq.type}, NSN ${match.eq.nsn}\nPeriod: 180 days\nPOC: Installation Property Book Officer` },
+    { title: "Appropriation Validation", icon: "⚖️", desc: "Configurable regulatory funding rules engine validates transaction legality", status: "AUTOMATED",
+      detail: `Validation checks performed:\n✓ Fund type authorized for equipment transfer (O&M)\n✓ Fiscal year funds available (FY2026 Q3)\n✓ Amount within single-transaction threshold\n✓ Cross-service transfer authority verified\n✓ Regulatory funding limit check: PASS\n✓ No fund augmentation detected\n\nAll regulatory compliance checks passed.\nTransaction cleared for approval routing.` },
+    { title: "Approval Routing", icon: "📨", desc: "System transmits draft package via secure interface to designated approving officials", status: "AUTOMATED",
+      detail: `Routing chain:\n1. Source Property Book Officer → PENDING\n2. Source Resource Manager → QUEUED\n3. Destination Property Book Officer → QUEUED\n4. Destination Resource Manager → QUEUED\n\nSecure transmission protocol: TLS 1.3\nPackage hash: SHA-256\nAll approvers notified via encrypted channel\n\nSystem state: HALTED\nAwaiting cryptographic authorization tokens...` },
+    { title: "Officer Authorization", icon: "🔐", desc: "System HALTED — awaiting digitally signed cryptographic authorization tokens from designated user terminals", status: "HUMAN DECISION",
+      detail: `⏸️ SYSTEM EXECUTION HALTED\n\nThe system has prepared all documentation and\nis now paused awaiting human authorization.\n\nRequired: Digitally signed authorization tokens\nfrom each approving official's CAC/PKI credential.\n\nThe system does NOT proceed without human approval.\nThe system does NOT make the transfer decision.\nThe officer reviews, decides, and signs.\n\nUpon receipt of valid tokens, automated\nexecution resumes.` },
+    { title: "Transfer Execution", icon: "🚛", desc: "System received valid authorization tokens — automated execution resumed", status: "AUTOMATED",
+      detail: `✓ Authorization tokens received and validated\n✓ PKI signatures verified against DoD certificate chain\n✓ Condition baseline photos captured (SHA-256 hashed)\n✓ IoT diagnostic telemetry snapshot recorded\n✓ Digital checklist completed and signed\n✓ Transportation routing calculated\n✓ Estimated transit: ${Math.ceil(match.dist / 350)} days\n✓ All custody documentation recorded to immutable audit log\n\nEquipment status: IN TRANSIT\nTracking: Active` },
+    { title: "Settlement & Audit Close", icon: "✅", desc: "Financial settlement confirmed, transaction recorded to immutable audit log", status: "AUTOMATED",
+      detail: `✓ Equipment received at destination\n✓ Return condition photos captured and hashed\n✓ Pre/post condition comparison: NO DISCREPANCY\n✓ Financial settlement: $${match.transport.toLocaleString()} transferred\n✓ DFAS reconciliation reference logged\n✓ Transaction closed in immutable audit log\n✓ OCS score updated for both organizations\n\nCost Avoidance Realized: $${match.net.toLocaleString()}\nAudit Trail: Complete and tamper-evident` },
   ];
 
-  return <div style={{minHeight:"100vh",display:"flex",flexDirection:"column"}}>
-    {/* NAV BAR */}
-    <div style={{background:navy,padding:"0 24px",display:"flex",alignItems:"center",height:52}}>
-      <div style={{fontSize:18,fontWeight:700,color:white,marginRight:40,letterSpacing:0.5}}>GovLeaseAI</div>
-      <div style={{display:"flex",gap:0,flex:1}}>
-        {navItems.map(n=><button key={n.id} onClick={()=>setPage(n.id)} style={{
-          padding:"14px 16px",border:"none",fontSize:13,fontWeight:page===n.id?600:400,
-          color:page===n.id?white:"#94a3b8",background:page===n.id?"rgba(255,255,255,0.1)":"transparent",
-          borderBottom:page===n.id?"2px solid "+accent:"2px solid transparent",
-        }}>{n.label}</button>)}
-      </div>
-      <div style={{display:"flex",alignItems:"center",gap:12}}>
-        <span style={{fontSize:12,color:"#94a3b8"}}>Ismaila Raji</span>
-        <div style={{width:32,height:32,borderRadius:"50%",background:accent,display:"flex",
-          alignItems:"center",justifyContent:"center",color:white,fontSize:13,fontWeight:700}}>IR</div>
-      </div>
-    </div>
-
-    {/* CONTENT */}
-    <div style={{flex:1,padding:"20px 24px",maxWidth:1280,margin:"0 auto",width:"100%"}} className="fade-in" key={page}>
-
-      {/* ===== DASHBOARD ===== */}
-      {page==="dashboard"&&<div>
-        <h1 style={{fontSize:24,fontWeight:700,marginBottom:4}}>Welcome, Ismaila!</h1>
-        <p style={{color:textMed,marginBottom:20,fontSize:13}}>Cross-service equipment visibility and transfer management</p>
-
-        <div style={{display:"flex",gap:14,marginBottom:20,flexWrap:"wrap"}}>
-          <StatBox value={equipment.length} label="Total Equipment" sub="Class IV across 8 installations"/>
-          <StatBox value={matches.length} label="AI Match Signals" sub={`${crossSvc} cross-service opportunities`}/>
-          <StatBox value={idle} label="Idle Equipment" sub="Available for lateral transfer"/>
-          <StatBox value={demands.length} label="Open Requests" sub="Awaiting fulfillment"/>
-        </div>
-
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-          {/* Transfer Requests */}
-          <Card>
-            <CardHeader><span>TRANSFER REQUESTS</span><button onClick={()=>setPage("requests")} style={{border:"none",background:"none",color:accent,fontSize:12,fontWeight:500}}>View all requests</button></CardHeader>
-            <div style={{padding:0}}>
-              <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-                <thead><tr style={{borderBottom:`1px solid ${border}`}}>
-                  {["Installation","Equipment","Requested","Status"].map(h=><th key={h} style={{padding:"10px 16px",textAlign:"left",color:textLight,fontWeight:500,fontSize:11}}>{h}</th>)}
-                </tr></thead>
-                <tbody>
-                  {demands.slice(0,4).map(d=><tr key={d.id} style={{borderBottom:`1px solid ${border}`}}>
-                    <td style={{padding:"10px 16px"}}>{INSTALLATIONS.find(i=>i.id===d.instId)?.name}</td>
-                    <td style={{padding:"10px 16px"}}>{d.type.split(' ').slice(-1)[0]}</td>
-                    <td style={{padding:"10px 16px",color:textLight}}>{d.date}</td>
-                    <td style={{padding:"10px 16px"}}><Badge text={d.status==="Open"?"Pending":"Approved"}/></td>
-                  </tr>)}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-
-          {/* Top AI Matches */}
-          <Card>
-            <CardHeader><span>TOP AI MATCHES</span><button onClick={()=>setPage("matches")} style={{border:"none",background:"none",color:accent,fontSize:12,fontWeight:500}}>View all matches</button></CardHeader>
-            <div style={{padding:0}}>
-              <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-                <thead><tr style={{borderBottom:`1px solid ${border}`}}>
-                  {["Equipment","Route","Savings","Conf"].map(h=><th key={h} style={{padding:"10px 16px",textAlign:"left",color:textLight,fontWeight:500,fontSize:11}}>{h}</th>)}
-                </tr></thead>
-                <tbody>
-                  {matches.slice(0,4).map(m=><tr key={m.id} style={{borderBottom:`1px solid ${border}`,cursor:"pointer"}}
-                    onClick={()=>{setSelMatch(m);setMiprStep(0);setPage("requests");}}>
-                    <td style={{padding:"10px 16px",fontWeight:500}}>{m.type.split(' ').slice(-1)[0]}</td>
-                    <td style={{padding:"10px 16px",fontSize:11}}>{m.srcName} → {m.dstName}</td>
-                    <td style={{padding:"10px 16px",fontWeight:600,color:green}}>${(m.avoidance/1000).toFixed(0)}K</td>
-                    <td style={{padding:"10px 16px"}}><span style={{fontWeight:600,color:m.confidence>85?green:amber}}>{m.confidence}%</span></td>
-                  </tr>)}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </div>
-
-        {/* Cost Avoidance Summary */}
-        <Card>
-          <CardHeader><span>COST AVOIDANCE SUMMARY</span></CardHeader>
-          <div style={{padding:20,display:"flex",gap:40,alignItems:"center",flexWrap:"wrap"}}>
-            <div>
-              <div style={{fontSize:36,fontWeight:700,color:green}}>${(totalCA/1e6).toFixed(2)}M</div>
-              <div style={{fontSize:12,color:textMed}}>Total potential cost avoidance</div>
-            </div>
-            <div style={{flex:1,minWidth:300}}>
-              {INSTALLATIONS.filter(inst=>matches.some(m=>m.srcName===inst.name)).slice(0,5).map(inst=>{
-                const ia=matches.filter(m=>m.srcName===inst.name).reduce((s,m)=>s+m.avoidance,0);
-                const mx=Math.max(...INSTALLATIONS.map(i=>matches.filter(m=>m.srcName===i.name).reduce((s,m)=>s+m.avoidance,0)),1);
-                return <div key={inst.id} style={{marginBottom:8}}>
-                  <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:3}}>
-                    <span>{inst.name}</span>
-                    <span style={{fontWeight:600,color:green}}>${(ia/1000).toFixed(0)}K</span>
-                  </div>
-                  <div style={{height:6,background:"#e5e7eb",borderRadius:3}}>
-                    <div style={{height:"100%",borderRadius:3,width:`${(ia/mx)*100}%`,background:`linear-gradient(90deg,${accent},${green})`}}/>
-                  </div>
-                </div>;
-              })}
-            </div>
-          </div>
-        </Card>
-      </div>}
-
-      {/* ===== EQUIPMENT ===== */}
-      {page==="equipment"&&<div>
-        <h1 style={{fontSize:22,fontWeight:700,marginBottom:16}}>Equipment Inventory</h1>
-        <div style={{display:"flex",gap:10,marginBottom:16,flexWrap:"wrap"}}>
-          <div style={{flex:1,minWidth:250,position:"relative"}}>
-            <span style={{position:"absolute",left:12,top:10,color:textLight,fontSize:14}}>🔍</span>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search for equipment..."
-              style={{width:"100%",padding:"10px 12px 10px 36px",borderRadius:8,border:`1px solid ${border}`,fontSize:13,background:white}}/>
-          </div>
-          <select value={fBranch} onChange={e=>setFBranch(e.target.value)}
-            style={{padding:"10px 14px",borderRadius:8,border:`1px solid ${border}`,fontSize:13,background:white}}>
-            <option value="All">All Branches</option>
-            {["Army","Marines","Navy","Air Force"].map(b=><option key={b}>{b}</option>)}
-          </select>
-          <select value={fStatus} onChange={e=>setFStatus(e.target.value)}
-            style={{padding:"10px 14px",borderRadius:8,border:`1px solid ${border}`,fontSize:13,background:white}}>
-            <option value="All">All Statuses</option>
-            {STATUSES.map(s=><option key={s}>{s}</option>)}
-          </select>
-        </div>
-
-        {/* Equipment Cards */}
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
-          {filtered.slice(0,24).map(e=><Card key={e.id} style={{cursor:"pointer"}}>
-            <div style={{height:140,background:`url(${e.img}) center/cover`,position:"relative"}}>
-              <div style={{position:"absolute",top:8,right:8}}><Badge text={e.status}/></div>
-            </div>
-            <div style={{padding:14}}>
-              <div style={{fontWeight:600,fontSize:14,marginBottom:4}}>{e.type}</div>
-              <div style={{fontSize:12,color:textMed,marginBottom:6}}>{e.instName}, {e.state} · {e.branch}</div>
-              <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:textLight}}>
-                <span>ID: {e.id}</span>
-                <span>Condition: <span style={{color:e.condition==="Good"?green:amber,fontWeight:500}}>{e.condition}</span></span>
-              </div>
-              {e.status==="Idle"&&<div style={{marginTop:8,padding:"6px 0",borderTop:`1px solid ${border}`,fontSize:11,color:amber,fontWeight:500}}>
-                Idle {e.daysIdle} days · Available {e.availDate}
-              </div>}
-            </div>
-          </Card>)}
-        </div>
-        <div style={{textAlign:"center",padding:16,fontSize:12,color:textLight}}>
-          Showing {Math.min(filtered.length,24)} of {filtered.length} equipment records
-        </div>
-      </div>}
-
-      {/* ===== AI MATCHES ===== */}
-      {page==="matches"&&<div>
-        <h1 style={{fontSize:22,fontWeight:700,marginBottom:4}}>AI Match Recommendations</h1>
-        <p style={{color:textMed,fontSize:13,marginBottom:16}}>Algorithm analyzed {idle} idle assets against {demands.length} open requests. Top {matches.length} matches shown.</p>
-
-        {matches.map(m=><Card key={m.id} style={{marginBottom:12}}>
-          <div style={{display:"flex",alignItems:"stretch"}}>
-            <div style={{width:160,background:`url(${m.img}) center/cover`,minHeight:120}}/>
-            <div style={{flex:1,padding:16}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                <div>
-                  <div style={{fontWeight:600,fontSize:15}}>{m.type}</div>
-                  <div style={{fontSize:12,color:textMed,marginTop:2}}>
-                    {m.srcName} ({m.srcBranch}) → {m.dstName} ({m.dstBranch})
-                    {m.srcBranch!==m.dstBranch&&<Badge text="Cross-Service"/>}
-                  </div>
-                </div>
-                <div style={{textAlign:"right"}}>
-                  <div style={{fontSize:22,fontWeight:700,color:green}}>${(m.avoidance/1000).toFixed(0)}K</div>
-                  <div style={{fontSize:10,color:textLight}}>cost avoidance</div>
-                </div>
-              </div>
-              <div style={{display:"flex",gap:20,fontSize:12,color:textMed,marginBottom:10}}>
-                <span>Distance: <b>{m.distance} mi</b></span>
-                <span>Transport: <b style={{color:red}}>${m.transportCost.toLocaleString()}</b></span>
-                <span>Replacement: <b>${m.replaceCost.toLocaleString()}</b></span>
-                <span>Idle: <b>{m.daysIdle}d</b></span>
-              </div>
-              <div style={{display:"flex",alignItems:"center",gap:12}}>
-                <div style={{display:"flex",alignItems:"center",gap:6}}>
-                  <div style={{width:80,height:6,background:"#e5e7eb",borderRadius:3}}>
-                    <div style={{width:`${m.confidence}%`,height:"100%",borderRadius:3,background:m.confidence>85?green:amber}}/>
-                  </div>
-                  <span style={{fontSize:12,fontWeight:600,color:m.confidence>85?green:amber}}>{m.confidence}%</span>
-                </div>
-                <Badge text={m.urgency}/>
-                <button onClick={()=>{setSelMatch(m);setMiprStep(0);setPage("requests");}}
-                  style={{marginLeft:"auto",padding:"8px 20px",borderRadius:8,border:"none",
-                    background:accent,color:white,fontSize:12,fontWeight:600}}>
-                  Initiate Transfer →
-                </button>
-              </div>
-            </div>
-          </div>
-        </Card>)}
-      </div>}
-
-      {/* ===== TRANSFER REQUESTS (MIPR) ===== */}
-      {page==="requests"&&<div>
-        <h1 style={{fontSize:22,fontWeight:700,marginBottom:16}}>Transfer Requests</h1>
-
-        {selMatch?<div>
-          {/* MIPR Workflow */}
-          <Card style={{marginBottom:16}}>
-            <CardHeader><span>Transfer Workflow — DD Form 448 (MIPR)</span></CardHeader>
-            <div style={{padding:20}}>
-              <div style={{display:"flex",alignItems:"center",marginBottom:24}}>
-                {MIPR_STEPS.map((s,i)=><React.Fragment key={i}>
-                  <div style={{display:"flex",flexDirection:"column",alignItems:"center",flex:0}}>
-                    <div style={{width:36,height:36,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",
-                      fontSize:14,fontWeight:700,
-                      background:i<miprStep?green:i===miprStep?accent:"#e5e7eb",
-                      color:i<=miprStep?white:textLight,
-                      border:i===miprStep?`3px solid ${accent}40`:"none",
-                    }}>{i<miprStep?"✓":i+1}</div>
-                    <div style={{fontSize:9,color:i<=miprStep?textDark:textLight,marginTop:4,textAlign:"center",width:80,fontWeight:i===miprStep?600:400}}>{s}</div>
-                  </div>
-                  {i<MIPR_STEPS.length-1&&<div style={{flex:1,height:2,background:i<miprStep?green:"#e5e7eb",margin:"0 4px",marginBottom:20}}/>}
-                </React.Fragment>)}
-              </div>
-              <div style={{display:"flex",gap:8,justifyContent:"center"}}>
-                <button onClick={()=>setMiprStep(Math.max(0,miprStep-1))} style={{padding:"8px 20px",borderRadius:8,border:`1px solid ${border}`,background:white,fontSize:12,fontWeight:500}}>← Back</button>
-                <button onClick={()=>setMiprStep(Math.min(4,miprStep+1))} style={{padding:"8px 24px",borderRadius:8,border:"none",background:accent,color:white,fontSize:12,fontWeight:600}}>
-                  {miprStep<4?"Next Step →":"Complete Transfer ✓"}
-                </button>
-              </div>
-            </div>
-          </Card>
-
-          {/* Transfer Details */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-            <Card>
-              <CardHeader><span>Equipment Details</span></CardHeader>
-              <div style={{padding:16}}>
-                <div style={{height:150,background:`url(${selMatch.img}) center/cover`,borderRadius:8,marginBottom:12}}/>
-                {[["Equipment ID",selMatch.eqId],["Type",selMatch.type],["Source",`${selMatch.srcName} (${selMatch.srcBranch})`],
-                  ["Destination",`${selMatch.dstName} (${selMatch.dstBranch})`],["Distance",`${selMatch.distance} miles`],
-                  ["Idle Days",`${selMatch.daysIdle} days`]].map(([k,v])=>
-                  <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:`1px solid ${border}`,fontSize:12}}>
-                    <span style={{color:textLight}}>{k}</span><span style={{fontWeight:500}}>{v}</span>
-                  </div>)}
-              </div>
-            </Card>
-            <Card>
-              <CardHeader><span>Financial Summary</span></CardHeader>
-              <div style={{padding:16}}>
-                {[["Replacement Cost",`$${selMatch.replaceCost.toLocaleString()}`,textDark],
-                  ["Transport Cost",`$${selMatch.transportCost.toLocaleString()}`,red],
-                  ["Cost Avoidance",`$${selMatch.avoidance.toLocaleString()}`,green],
-                  ["Match Confidence",`${selMatch.confidence}%`,selMatch.confidence>85?green:amber],
-                  ["Appropriation","O&M — VALIDATED ✓",green],
-                  ["Anti-Deficiency Act","CLEARED — No violations",green],
-                  ["MIPR Status",miprStep>=4?"COMPLETE":"AWAITING OFFICER SIGNATURE",miprStep>=4?green:amber],
-                ].map(([k,v,c])=>
-                  <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:`1px solid ${border}`,fontSize:12}}>
-                    <span style={{color:textLight}}>{k}</span><span style={{fontWeight:600,color:c}}>{v}</span>
-                  </div>)}
-              </div>
-            </Card>
-          </div>
-        </div>:
-        /* Request List */
+  const s = steps[step];
+  return <div style={{ position: "fixed", inset: 0, background: "#000000cc", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+    onClick={onClose}>
+    <div onClick={e => e.stopPropagation()} style={{ background: colors.bg, border: `1px solid ${colors.border}`, borderRadius: 8, width: "100%", maxWidth: 700, maxHeight: "90vh", overflow: "auto" }}>
+      {/* Header */}
+      <div style={{ padding: "16px 20px", borderBottom: `1px solid ${colors.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
-          <div style={{display:"flex",gap:0,marginBottom:16}}>
-            {["Pending","Approved","Denied"].map(t=><button key={t} onClick={()=>setReqTab(t)} style={{
-              padding:"8px 20px",border:`1px solid ${border}`,fontSize:12,fontWeight:reqTab===t?600:400,
-              background:reqTab===t?accent:white,color:reqTab===t?white:textMed,
-              borderRadius:t==="Pending"?"8px 0 0 8px":t==="Denied"?"0 8px 8px 0":"0",
-            }}>{t}</button>)}
+          <div style={{ ...base, fontSize: 14, fontWeight: 700 }}>MIPR Financial Reconciliation Workflow</div>
+          <div style={{ ...base, fontSize: 11, color: colors.textDim }}>{match.eq.type} → {match.dest.name}</div>
+        </div>
+        <button onClick={onClose} style={{ ...base, background: "none", border: "none", color: colors.textDim, cursor: "pointer", fontSize: 18 }}>✕</button>
+      </div>
+
+      {/* Step indicator */}
+      <div style={{ padding: "12px 20px", display: "flex", gap: 4, borderBottom: `1px solid ${colors.border}` }}>
+        {steps.map((st, i) => <div key={i} style={{
+          flex: 1, height: 4, borderRadius: 2,
+          background: i < step ? colors.green : i === step ? (s.status === "HUMAN DECISION" ? colors.amber : colors.accent) : colors.border,
+          transition: "background 0.3s"
+        }} />)}
+      </div>
+
+      {/* Content */}
+      <div style={{ padding: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+          <span style={{ fontSize: 32 }}>{s.icon}</span>
+          <div>
+            <div style={{ ...base, fontSize: 11, color: colors.textDim }}>STEP {step + 1} OF {steps.length}</div>
+            <div style={{ ...base, fontSize: 16, fontWeight: 700 }}>{s.title}</div>
+            <div style={{ ...base, fontSize: 12, color: colors.textDim, marginTop: 2 }}>{s.desc}</div>
           </div>
-          <Card>
-            <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-              <thead><tr style={{borderBottom:`2px solid ${border}`}}>
-                {["Equipment","Installation","Branch","Requested","Urgency","Status","Action"].map(h=>
-                  <th key={h} style={{padding:"12px 16px",textAlign:"left",color:textLight,fontWeight:500,fontSize:11}}>{h}</th>)}
-              </tr></thead>
-              <tbody>
-                {demands.map(d=>{
-                  const inst=INSTALLATIONS.find(i=>i.id===d.instId);
-                  const bestMatch=matches.find(m=>m.demId===d.id);
-                  return <tr key={d.id} style={{borderBottom:`1px solid ${border}`}}>
-                    <td style={{padding:"12px 16px",fontWeight:500}}>{d.type}</td>
-                    <td style={{padding:"12px 16px"}}>{inst?.name}</td>
-                    <td style={{padding:"12px 16px"}}><Badge text={inst?.branch}/></td>
-                    <td style={{padding:"12px 16px",color:textLight}}>{d.date}</td>
-                    <td style={{padding:"12px 16px"}}><Badge text={d.urgency}/></td>
-                    <td style={{padding:"12px 16px"}}><Badge text="Pending"/></td>
-                    <td style={{padding:"12px 16px"}}>
-                      {bestMatch&&<button onClick={()=>{setSelMatch(bestMatch);setMiprStep(0);}}
-                        style={{padding:"5px 12px",borderRadius:6,border:`1px solid ${accent}`,background:white,color:accent,fontSize:11,fontWeight:500}}>
-                        View Match →
-                      </button>}
-                    </td>
-                  </tr>;
-                })}
-              </tbody>
-            </table>
-          </Card>
+          <Badge color={s.status === "HUMAN DECISION" ? colors.amber : colors.green}>{s.status}</Badge>
+        </div>
+
+        {s.status === "HUMAN DECISION" && <div style={{ background: colors.amberDim, border: `1px solid ${colors.amber}44`, borderRadius: 6, padding: 12, marginBottom: 16 }}>
+          <div style={{ ...base, fontSize: 12, fontWeight: 700, color: colors.amber, marginBottom: 4 }}>⚠ HUMAN AUTHORIZATION REQUIRED</div>
+          <div style={{ ...base, fontSize: 11, color: colors.text }}>The system has halted automated execution. An authorized officer must review the prepared documentation and provide a digitally signed cryptographic authorization token to proceed. The system does not make this decision.</div>
         </div>}
-      </div>}
 
-      {/* ===== TRANSPORTATION ===== */}
-      {page==="transportation"&&<div>
-        <h1 style={{fontSize:22,fontWeight:700,marginBottom:16}}>Transportation Dashboard</h1>
-        <div style={{display:"flex",gap:14,marginBottom:20,flexWrap:"wrap"}}>
-          <StatBox value="24" label="In Transit"/>
-          <StatBox value="12" label="Delivered Today"/>
-          <StatBox value="18" label="Scheduled Pickups"/>
-          <StatBox value="2.3d" label="Avg. Delivery Time"/>
-        </div>
-        <Card>
-          <CardHeader><span>ACTIVE SHIPMENTS</span></CardHeader>
-          <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-            <thead><tr style={{borderBottom:`2px solid ${border}`}}>
-              {["Shipment ID","Equipment","From","To","Status","Progress","ETA"].map(h=>
-                <th key={h} style={{padding:"12px 16px",textAlign:"left",color:textLight,fontWeight:500,fontSize:11}}>{h}</th>)}
-            </tr></thead>
-            <tbody>
-              {[
-                {id:"SH-2026-1847",eq:"CAT D6 Bulldozer",from:"Fort Cavazos",to:"Fort Bliss",status:"In Transit",pct:65,eta:"2h 15m"},
-                {id:"SH-2026-1848",eq:"CAT 320 Excavator",from:"Fort Sill",to:"Camp Lejeune",status:"In Transit",pct:30,eta:"18h"},
-                {id:"SH-2026-1849",eq:"CASE 580 Backhoe",from:"Camp Pendleton",to:"NB Norfolk",status:"Scheduled",pct:0,eta:"Mar 20"},
-                {id:"SH-2026-1850",eq:"Bobcat T770 Skid Steer",from:"Fort Johnson",to:"Fort Bliss",status:"Delivered",pct:100,eta:"Complete"},
-              ].map(s=><tr key={s.id} style={{borderBottom:`1px solid ${border}`}}>
-                <td style={{padding:"12px 16px",fontFamily:"monospace",fontSize:11}}>{s.id}</td>
-                <td style={{padding:"12px 16px",fontWeight:500}}>{s.eq}</td>
-                <td style={{padding:"12px 16px"}}>{s.from}</td>
-                <td style={{padding:"12px 16px"}}>{s.to}</td>
-                <td style={{padding:"12px 16px"}}><Badge text={s.status}/></td>
-                <td style={{padding:"12px 16px"}}>
-                  <div style={{width:80,height:5,background:"#e5e7eb",borderRadius:3}}>
-                    <div style={{width:`${s.pct}%`,height:"100%",borderRadius:3,background:s.pct===100?green:accent}}/>
-                  </div>
-                </td>
-                <td style={{padding:"12px 16px",fontSize:11,color:textLight}}>{s.eta}</td>
-              </tr>)}
-            </tbody>
-          </table>
-        </Card>
-      </div>}
+        <pre style={{ ...base, fontSize: 11, background: colors.surfaceLight, border: `1px solid ${colors.border}`, borderRadius: 4, padding: 16, whiteSpace: "pre-wrap", margin: 0, lineHeight: 1.8 }}>{s.detail}</pre>
+      </div>
 
-      {/* ===== REPORTS ===== */}
-      {page==="reports"&&<div>
-        <h1 style={{fontSize:22,fontWeight:700,marginBottom:16}}>Reports & Analytics</h1>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-          <Card>
-            <CardHeader><span>UTILIZATION OVERVIEW</span></CardHeader>
-            <div style={{padding:20}}>
-              <div style={{display:"flex",alignItems:"center",gap:20,marginBottom:16}}>
-                <div style={{position:"relative",width:100,height:100}}>
-                  <svg viewBox="0 0 36 36" style={{width:100,height:100,transform:"rotate(-90deg)"}}>
-                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" strokeWidth="3"/>
-                    <circle cx="18" cy="18" r="15.9" fill="none" stroke={accent} strokeWidth="3"
-                      strokeDasharray={`${Math.round((equipment.length-idle)/equipment.length*100)} 100`}/>
-                  </svg>
-                  <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",textAlign:"center"}}>
-                    <div style={{fontSize:18,fontWeight:700}}>{Math.round((equipment.length-idle)/equipment.length*100)}%</div>
-                    <div style={{fontSize:8,color:textLight}}>In Use</div>
-                  </div>
-                </div>
-                <div>
-                  {[["Active",equipment.filter(e=>e.status==="Active").length,green],
-                    ["Idle",idle,amber],
-                    ["Maintenance",equipment.filter(e=>e.status==="Maintenance").length,red],
-                    ["Reserved",equipment.filter(e=>e.status==="Reserved").length,textLight],
-                  ].map(([k,v,c])=><div key={k} style={{display:"flex",alignItems:"center",gap:6,marginBottom:4,fontSize:12}}>
-                    <div style={{width:8,height:8,borderRadius:2,background:c}}/>{k}: <b>{v}</b>
-                  </div>)}
-                </div>
-              </div>
-            </div>
-          </Card>
-          <Card>
-            <CardHeader><span>ASSET DISTRIBUTION</span></CardHeader>
-            <div style={{padding:20}}>
-              <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-                <thead><tr style={{borderBottom:`1px solid ${border}`}}>
-                  {["Type","Quantity","Avg Utilization"].map(h=><th key={h} style={{padding:"6px 0",textAlign:"left",color:textLight,fontSize:11}}>{h}</th>)}
-                </tr></thead>
-                <tbody>
-                  {EQUIP_TYPES.map(t=>{
-                    const ct=equipment.filter(e=>e.type===t.type);
-                    const avg=ct.length?Math.round(ct.reduce((s,e)=>s+e.utilization,0)/ct.length):0;
-                    return <tr key={t.type} style={{borderBottom:`1px solid ${border}`}}>
-                      <td style={{padding:"8px 0",fontWeight:500}}>{t.type.split(' ').slice(-2).join(' ')}</td>
-                      <td style={{padding:"8px 0"}}>{ct.length}</td>
-                      <td style={{padding:"8px 0"}}>
-                        <div style={{display:"flex",alignItems:"center",gap:6}}>
-                          <div style={{width:60,height:5,background:"#e5e7eb",borderRadius:3}}>
-                            <div style={{width:`${avg}%`,height:"100%",borderRadius:3,background:avg>50?green:amber}}/>
-                          </div>
-                          <span style={{fontSize:11}}>{avg}%</span>
-                        </div>
-                      </td>
-                    </tr>;
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </div>
-        <Card>
-          <CardHeader><span>PILOT EXECUTIVE SUMMARY</span></CardHeader>
-          <div style={{padding:20,display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16,fontSize:12}}>
-            <div>
-              <div style={{fontWeight:600,marginBottom:8,color:textLight,fontSize:10,textTransform:"uppercase",letterSpacing:1}}>Configuration</div>
-              <div>Equipment: <b>Class IV Construction</b></div>
-              <div>Installations: <b>8 monitored</b></div>
-              <div>Branches: <b>Army, Marines, Navy, AF</b></div>
-              <div>Data: <b>DPAS Batch (Daily)</b></div>
-            </div>
-            <div>
-              <div style={{fontWeight:600,marginBottom:8,color:textLight,fontSize:10,textTransform:"uppercase",letterSpacing:1}}>Performance</div>
-              <div>Records: <b>{equipment.length}</b></div>
-              <div>Idle Detected: <b style={{color:amber}}>{idle}</b></div>
-              <div>Matches: <b style={{color:green}}>{matches.length}</b></div>
-              <div>Cross-Service: <b>{crossSvc}</b></div>
-            </div>
-            <div>
-              <div style={{fontWeight:600,marginBottom:8,color:textLight,fontSize:10,textTransform:"uppercase",letterSpacing:1}}>Financial Impact</div>
-              <div>Cost Avoidance: <b style={{color:green}}>${(totalCA/1e6).toFixed(2)}M</b></div>
-              <div>Phase 1 Cost: <b>$575,000</b></div>
-              <div>ROI: <b style={{color:green}}>{Math.round(totalCA/575000)}x</b></div>
-            </div>
-          </div>
-        </Card>
-      </div>}
-
-    </div>
-
-    {/* FOOTER */}
-    <div style={{padding:"10px 24px",borderTop:`1px solid ${border}`,background:white,
-      display:"flex",justifyContent:"space-between",fontSize:10,color:textLight}}>
-      <span>GovLeaseAI v1.0 · Patent Pending USPTO 63/823,715 · Izy Global Services LLC (SDVOSB) · CAGE: 949Y3</span>
-      <span style={{color:amber,fontWeight:500}}>DEMO — SYNTHETIC DATA — NOT CONNECTED TO GOVERNMENT SYSTEMS</span>
+      {/* Nav */}
+      <div style={{ padding: "12px 20px", borderTop: `1px solid ${colors.border}`, display: "flex", justifyContent: "space-between" }}>
+        <button disabled={step === 0} onClick={() => setStep(step-1)}
+          style={{ ...base, fontSize: 12, padding: "8px 16px", borderRadius: 4, border: `1px solid ${colors.border}`, background: "none", color: step === 0 ? colors.textDim : colors.text, cursor: step === 0 ? "default" : "pointer" }}>← Previous</button>
+        {step === 4 && !token ? (
+          <button onClick={() => { setToken("AUTH-" + Math.random().toString(36).substr(2,8).toUpperCase()); setTimeout(() => setStep(5), 800); }}
+            style={{ ...base, fontSize: 12, padding: "8px 20px", borderRadius: 4, border: `1px solid ${colors.amber}`, background: colors.amberDim, color: colors.amber, cursor: "pointer", fontWeight: 700 }}>
+            🔐 Simulate Officer Authorization
+          </button>
+        ) : (
+          <button disabled={step === steps.length - 1} onClick={() => setStep(step+1)}
+            style={{ ...base, fontSize: 12, padding: "8px 16px", borderRadius: 4, border: `1px solid ${colors.accent}`, background: step === steps.length - 1 ? "none" : colors.accentDim, color: step === steps.length - 1 ? colors.textDim : colors.accent, cursor: step === steps.length - 1 ? "default" : "pointer" }}>
+            Next →
+          </button>
+        )}
+      </div>
     </div>
   </div>;
 }
 
-ReactDOM.render(<App/>,document.getElementById('root'));
-</script>
-</body>
-</html>
+// ── Condition Tracking Modal ──
+function ConditionModal({ eq, onClose }) {
+  const hash = "a3f8" + eq.id.replace(/[^0-9]/g,"") + "c7e2b1d09f4a6e8c3b5d7f1a2e4c6d8b0a9f7e5c3d1b";
+  return <div style={{ position: "fixed", inset: 0, background: "#000000cc", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
+    <div onClick={e => e.stopPropagation()} style={{ background: colors.bg, border: `1px solid ${colors.border}`, borderRadius: 8, width: "100%", maxWidth: 600, maxHeight: "90vh", overflow: "auto" }}>
+      <div style={{ padding: "16px 20px", borderBottom: `1px solid ${colors.border}`, display: "flex", justifyContent: "space-between" }}>
+        <div style={{ ...base, fontSize: 14, fontWeight: 700 }}>Condition Documentation — {eq.type}</div>
+        <button onClick={onClose} style={{ ...base, background: "none", border: "none", color: colors.textDim, cursor: "pointer", fontSize: 18 }}>✕</button>
+      </div>
+      <div style={{ padding: 20 }}>
+        {/* Transfer Baseline */}
+        <div style={{ ...base, fontSize: 12, fontWeight: 700, color: colors.accent, marginBottom: 8 }}>PRE-TRANSFER CONDITION BASELINE</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
+          {["📸 Visual Photo", "🔧 Diagnostic Telemetry", "📋 Digital Checklist"].map((m, i) => (
+            <Card key={i} style={{ padding: 10 }}>
+              <div style={{ ...base, fontSize: 11, fontWeight: 600, marginBottom: 6 }}>{m}</div>
+              <div style={{ ...base, fontSize: 10, color: colors.textDim }}>
+                {i === 0 && `Exterior: 4 angles captured\nInterior: 2 photos\nDamage areas: 0 flagged`}
+                {i === 1 && `Engine hours: ${eq.hours}\nFluid pressure: Normal\nDTC codes: None active\nBattery: 12.6V`}
+                {i === 2 && `Tracks/tires: ✓ Good\nHydraulics: ✓ Operational\nSafety equip: ✓ Present\nFluids: ✓ Topped`}
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        <div style={{ ...base, fontSize: 11, color: colors.textDim, marginBottom: 4 }}>SHA-256 Hash (tamper-evident):</div>
+        <div style={{ ...base, fontSize: 10, background: colors.surfaceLight, padding: 8, borderRadius: 4, fontFamily: "monospace", wordBreak: "break-all", color: colors.green, marginBottom: 16 }}>{hash}</div>
+        <div style={{ ...base, fontSize: 10, color: colors.textDim, marginBottom: 16 }}>Timestamp: {new Date().toISOString()} | Recorded to immutable audit log</div>
+
+        {/* Feedback Loop */}
+        <div style={{ ...base, fontSize: 12, fontWeight: 700, color: colors.purple, marginBottom: 8 }}>FEEDBACK LOOP → MATCHING ENGINE</div>
+        <Card style={{ background: colors.surfaceLight }}>
+          <div style={{ ...base, fontSize: 11, lineHeight: 1.8 }}>
+            <div>This organization's historical condition record:</div>
+            <div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+              <div><span style={{ color: colors.textDim }}>Transfers:</span> <span style={{ fontWeight: 600 }}>12</span></div>
+              <div><span style={{ color: colors.textDim }}>Discrepancies:</span> <span style={{ fontWeight: 600, color: colors.amber }}>2</span></div>
+              <div><span style={{ color: colors.textDim }}>OCS Score:</span> <span style={{ fontWeight: 600, color: colors.green }}>0.850</span></div>
+            </div>
+            <div style={{ marginTop: 12, padding: 8, background: colors.bg, borderRadius: 4, fontSize: 10 }}>
+              <span style={{ color: colors.purple }}>↻ Feedback:</span> OCS = 1.0 − (weighted_decay × discrepancy_rate) = 1.0 − (0.9 × 0.167) = <span style={{ fontWeight: 700 }}>0.850</span>
+              <br/>This score is fed back into the matching engine. Organizations with lower OCS are deprioritized in future match signals.
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+  </div>;
+}
+
+// ── Main App ──
+export default function GovLeaseAI() {
+  const [tab, setTab] = useState("dashboard");
+  const [miprMatch, setMiprMatch] = useState(null);
+  const [condEq, setCondEq] = useState(null);
+  const [expandedMatch, setExpandedMatch] = useState(null);
+
+  const totalAvoidance = MATCHES.reduce((s, m) => s + m.net, 0);
+  const idleEquip = EQUIPMENT.filter(e => e.util < 30).length;
+  const crossService = MATCHES.filter(m => m.crossService).length;
+
+  const tabs = [
+    { id: "dashboard", label: "Dashboard", icon: "◉" },
+    { id: "equipment", label: "Equipment Index", icon: "▦" },
+    { id: "matching", label: "Matching Engine", icon: "⊕" },
+    { id: "mipr", label: "Financial Workflow", icon: "◈" },
+    { id: "condition", label: "Condition Tracking", icon: "◎" },
+    { id: "analytics", label: "Cost Avoidance", icon: "△" },
+  ];
+
+  return <div style={{ ...base, background: colors.bg, minHeight: "100vh" }}>
+    {miprMatch && <MIPRWorkflow match={miprMatch} onClose={() => setMiprMatch(null)} />}
+    {condEq && <ConditionModal eq={condEq} onClose={() => setCondEq(null)} />}
+
+    {/* Header */}
+    <div style={{ borderBottom: `1px solid ${colors.border}`, padding: "12px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{ ...base, fontSize: 16, fontWeight: 800, letterSpacing: 2 }}>
+          <span style={{ color: colors.accent }}>GOV</span><span style={{ color: colors.text }}>LEASE</span><span style={{ color: colors.green }}>AI</span>
+        </div>
+        <Badge color={colors.green}>PHASE 1 PILOT</Badge>
+        <Badge color={colors.purple}>CLASS IV CONSTRUCTION</Badge>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ ...base, fontSize: 10, color: colors.textDim }}>U.S. Patent App. 19/639,216</span>
+        <span style={{ ...base, fontSize: 10, color: colors.textDim }}>|</span>
+        <span style={{ ...base, fontSize: 10, color: colors.textDim }}>SDVOSB · CAGE 949Y3</span>
+      </div>
+    </div>
+
+    {/* Tabs */}
+    <div style={{ borderBottom: `1px solid ${colors.border}`, padding: "0 24px", display: "flex", gap: 0 }}>
+      {tabs.map(t => <button key={t.id} onClick={() => setTab(t.id)}
+        style={{ ...base, fontSize: 12, padding: "12px 20px", background: "none", border: "none", borderBottom: tab === t.id ? `2px solid ${colors.accent}` : "2px solid transparent",
+          color: tab === t.id ? colors.accent : colors.textDim, cursor: "pointer", transition: "all 0.2s" }}>
+        <span style={{ marginRight: 6 }}>{t.icon}</span>{t.label}
+      </button>)}
+    </div>
+
+    {/* Content */}
+    <div style={{ padding: 24 }}>
+
+      {/* ── DASHBOARD ── */}
+      {tab === "dashboard" && <>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16, marginBottom: 24 }}>
+          <Card><Stat label="Equipment Tracked" value={EQUIPMENT.length} sub="Class IV items" /></Card>
+          <Card><Stat label="Idle / Underutilized" value={idleEquip} sub={`${Math.round(idleEquip/EQUIPMENT.length*100)}% of fleet`} color={colors.amber} /></Card>
+          <Card><Stat label="Active Matches" value={MATCHES.length} sub="algorithm-generated" color={colors.green} /></Card>
+          <Card><Stat label="Cross-Service" value={crossService} sub="inter-branch matches" color={colors.purple} /></Card>
+          <Card><Stat label="Potential Avoidance" value={`$${(totalAvoidance/1e6).toFixed(1)}M`} sub="procurement savings" color={colors.green} /></Card>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <Card>
+            <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 12 }}>SYSTEM ARCHITECTURE — 9 SUBSYSTEMS</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+              {["Data Ingestion", "Normalization Engine", "Predictive Matching", "Procurement Alerts", "Financial Reconciliation", "Condition Documentation", "Damage Adjudication", "Condition Feedback Engine", "Heuristic Mapping Layer"].map((s, i) => (
+                <div key={i} style={{ ...base, fontSize: 10, padding: "8px 10px", background: colors.surfaceLight, borderRadius: 4, border: `1px solid ${colors.border}`, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ color: colors.green, fontSize: 8 }}>●</span>{s}
+                </div>
+              ))}
+            </div>
+          </Card>
+          <Card>
+            <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 12 }}>TOP MATCH SIGNALS</div>
+            {MATCHES.slice(0, 5).map(m => (
+              <div key={m.id} onClick={() => { setTab("matching"); setExpandedMatch(m.id); }} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${colors.border}`, cursor: "pointer" }}>
+                <div>
+                  <div style={{ ...base, fontSize: 11, fontWeight: 600 }}>{m.eq.type}</div>
+                  <div style={{ ...base, fontSize: 10, color: colors.textDim }}>{m.src.name} → {m.dest.name}</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ ...base, fontSize: 12, fontWeight: 700, color: colors.green }}>${m.net.toLocaleString()}</div>
+                  <div style={{ ...base, fontSize: 10, color: colors.textDim }}>Score: {m.composite}</div>
+                </div>
+              </div>
+            ))}
+          </Card>
+        </div>
+      </>}
+
+      {/* ── EQUIPMENT INDEX ── */}
+      {tab === "equipment" && <>
+        <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 16 }}>UNIFIED EQUIPMENT INDEX — DPAS BATCH DATA INGESTION</div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr>{["ID", "Equipment Type", "NSN", "Installation", "Branch", "Utilization", "Days Idle", "Condition", "Hours", "Replacement Value", "Actions"].map(h =>
+              <th key={h} style={{ ...base, fontSize: 10, color: colors.textDim, textAlign: "left", padding: "8px 10px", borderBottom: `1px solid ${colors.border}`, textTransform: "uppercase", letterSpacing: 1 }}>{h}</th>
+            )}</tr></thead>
+            <tbody>{EQUIPMENT.map(e => {
+              const inst = INSTALLATIONS.find(i => i.id === e.install);
+              const utilColor = e.util < 20 ? colors.red : e.util < 40 ? colors.amber : colors.green;
+              return <tr key={e.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                <td style={{ ...base, fontSize: 11, padding: "10px" }}>{e.id}</td>
+                <td style={{ ...base, fontSize: 11, padding: "10px", fontWeight: 600 }}>{e.type}</td>
+                <td style={{ ...base, fontSize: 10, padding: "10px", color: colors.textDim }}>{e.nsn}</td>
+                <td style={{ ...base, fontSize: 11, padding: "10px" }}>{inst?.name}</td>
+                <td style={{ ...base, fontSize: 11, padding: "10px" }}><Badge color={inst?.branch === "Army" ? colors.green : inst?.branch === "Navy" ? colors.accent : inst?.branch === "Marines" ? colors.red : colors.purple}>{inst?.branch}</Badge></td>
+                <td style={{ ...base, fontSize: 11, padding: "10px", width: 120 }}><ProgressBar value={e.util} color={utilColor} showLabel /></td>
+                <td style={{ ...base, fontSize: 11, padding: "10px", color: e.daysIdle > 60 ? colors.red : colors.text }}>{e.daysIdle}</td>
+                <td style={{ ...base, fontSize: 11, padding: "10px" }}><Badge color={e.condition === "Serviceable" ? colors.green : e.condition === "Fair" ? colors.amber : colors.red}>{e.condition}</Badge></td>
+                <td style={{ ...base, fontSize: 11, padding: "10px", color: colors.textDim }}>{e.hours.toLocaleString()}</td>
+                <td style={{ ...base, fontSize: 11, padding: "10px" }}>${e.replacement.toLocaleString()}</td>
+                <td style={{ padding: "10px" }}><button onClick={() => setCondEq(e)} style={{ ...base, fontSize: 10, padding: "4px 10px", borderRadius: 3, border: `1px solid ${colors.cyan}44`, background: colors.cyan + "11", color: colors.cyan, cursor: "pointer" }}>Inspect</button></td>
+              </tr>;
+            })}</tbody>
+          </table>
+        </div>
+        <div style={{ marginTop: 16, padding: 12, background: colors.surfaceLight, borderRadius: 4, border: `1px solid ${colors.border}` }}>
+          <div style={{ ...base, fontSize: 10, color: colors.textDim }}>
+            <span style={{ color: colors.accent }}>DATA SOURCE:</span> DPAS batch uploads (daily CSV during pilot) | <span style={{ color: colors.accent }}>NORMALIZATION:</span> Equipment classified to unified taxonomy, condition codes standardized, geographic references normalized | <span style={{ color: colors.accent }}>DATA CONFIDENCE:</span> Each record scored on field completeness, source fidelity, and semantic resolution
+          </div>
+        </div>
+      </>}
+
+      {/* ── MATCHING ENGINE ── */}
+      {tab === "matching" && <>
+        <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 4 }}>PREDICTIVE MATCHING ENGINE</div>
+        <div style={{ ...base, fontSize: 11, color: colors.textDim, marginBottom: 16 }}>
+          Composite Score = (FES×0.25) + (GPS×0.20) + (TAS×0.25) + (FVS×0.15) + (OCS×0.15) × DQM
+        </div>
+        {MATCHES.map(m => {
+          const expanded = expandedMatch === m.id;
+          return <Card key={m.id} style={{ marginBottom: 8, border: expanded ? `1px solid ${colors.accent}` : undefined }} hoverable onClick={() => setExpandedMatch(expanded ? null : m.id)}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <div style={{ ...base, fontSize: 22, fontWeight: 800, color: colors.accent, minWidth: 60 }}>{(m.composite * 100).toFixed(0)}%</div>
+                <div>
+                  <div style={{ ...base, fontSize: 12, fontWeight: 600 }}>{m.eq.type}</div>
+                  <div style={{ ...base, fontSize: 11, color: colors.textDim }}>{m.src.name} ({m.src.branch}) → {m.dest.name} ({m.dest.branch}) · {m.dist} mi</div>
+                </div>
+                {m.crossService && <Badge color={colors.purple}>CROSS-SERVICE</Badge>}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ ...base, fontSize: 14, fontWeight: 700, color: colors.green }}>${m.net.toLocaleString()}</div>
+                  <div style={{ ...base, fontSize: 10, color: colors.textDim }}>net avoidance</div>
+                </div>
+                <button onClick={e => { e.stopPropagation(); setMiprMatch(m); }}
+                  style={{ ...base, fontSize: 10, padding: "8px 14px", borderRadius: 4, border: `1px solid ${colors.accent}`, background: colors.accentDim, color: colors.accent, cursor: "pointer", fontWeight: 700, whiteSpace: "nowrap" }}>
+                  MIPR →
+                </button>
+              </div>
+            </div>
+
+            {expanded && <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${colors.border}` }}>
+              <div style={{ ...base, fontSize: 11, fontWeight: 700, color: colors.accent, marginBottom: 8 }}>FACTOR SCORE DECOMPOSITION</div>
+              <FactorRow label="Equipment Similarity" value={m.fes} weight="0.25" formula="Taxonomy match" />
+              <FactorRow label="Geographic Proximity" value={m.gps} weight="0.20" formula="Haversine" />
+              <FactorRow label="Temporal Availability" value={m.tas} weight="0.25" formula="Idle days / 90" />
+              <FactorRow label="Financial Value" value={m.fvs} weight="0.15" formula="Replacement $" />
+              <FactorRow label="Org. Condition Score" value={m.ocs} weight="0.15" formula="Feedback loop" />
+              <div style={{ marginTop: 12, display: "flex", gap: 16 }}>
+                <div style={{ ...base, fontSize: 10, color: colors.textDim }}>
+                  <span style={{ color: colors.accent }}>Demand:</span> Requisition {m.demand.requisition} | Est. ${m.demand.est.toLocaleString()} | Urgency: {m.demand.urgency}
+                </div>
+                <div style={{ ...base, fontSize: 10, color: colors.textDim }}>
+                  <span style={{ color: colors.accent }}>Source:</span> {m.eq.hours.toLocaleString()} engine hrs | Last service: {m.eq.lastService}
+                </div>
+              </div>
+            </div>}
+          </Card>;
+        })}
+      </>}
+
+      {/* ── FINANCIAL WORKFLOW ── */}
+      {tab === "mipr" && <>
+        <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 4 }}>AUTOMATED FINANCIAL RECONCILIATION — STATE MACHINE</div>
+        <div style={{ ...base, fontSize: 11, color: colors.textDim, marginBottom: 16 }}>
+          Click any match below to walk through the complete 7-step MIPR workflow. The system automates all steps except Step 5 (Officer Authorization), where execution halts and waits for human cryptographic authorization.
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 24 }}>
+          {["Match Signal", "Form Generation", "Appropriation Check", "Approval Routing", "⏸ OFFICER AUTH", "Transfer Execution", "Settlement"].map((s, i) => (
+            <div key={i} style={{ ...base, fontSize: 9, padding: "10px 6px", background: i === 4 ? colors.amberDim : colors.surfaceLight, border: `1px solid ${i === 4 ? colors.amber + "44" : colors.border}`,
+              borderRadius: 4, textAlign: "center", fontWeight: i === 4 ? 700 : 400, color: i === 4 ? colors.amber : colors.textDim }}>
+              <div style={{ fontSize: 16, marginBottom: 4 }}>{["🎯","📄","⚖️","📨","🔐","🚛","✅"][i]}</div>
+              {s}
+              <div style={{ fontSize: 8, marginTop: 4, color: i === 4 ? colors.amber : colors.textDim }}>{i === 4 ? "HUMAN" : "AUTO"}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ ...base, fontSize: 11, fontWeight: 700, marginBottom: 8 }}>SELECT A MATCH TO INITIATE WORKFLOW</div>
+        {MATCHES.slice(0, 6).map(m => (
+          <Card key={m.id} hoverable onClick={() => setMiprMatch(m)} style={{ marginBottom: 6, padding: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ ...base, fontSize: 14, fontWeight: 700, color: colors.accent }}>{(m.composite*100).toFixed(0)}%</span>
+                <div>
+                  <div style={{ ...base, fontSize: 11, fontWeight: 600 }}>{m.eq.type}</div>
+                  <div style={{ ...base, fontSize: 10, color: colors.textDim }}>{m.src.name} → {m.dest.name}</div>
+                </div>
+                {m.crossService && <Badge color={colors.purple}>CROSS-SERVICE</Badge>}
+              </div>
+              <div style={{ ...base, fontSize: 12, fontWeight: 700, color: colors.green }}>${m.net.toLocaleString()} avoidance</div>
+            </div>
+          </Card>
+        ))}
+      </>}
+
+      {/* ── CONDITION TRACKING ── */}
+      {tab === "condition" && <>
+        <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 4 }}>CRYPTOGRAPHIC CONDITION DOCUMENTATION & FEEDBACK ENGINE</div>
+        <div style={{ ...base, fontSize: 11, color: colors.textDim, marginBottom: 16 }}>
+          Three-modality capture (photos + IoT diagnostics + digital checklist) at transfer and return. SHA-256 hashing ensures tamper-evident records. Condition results feed back into the Organizational Condition Score (OCS), directly influencing future match priority.
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 24 }}>
+          <Card style={{ borderTop: `3px solid ${colors.accent}` }}>
+            <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>📸 Visual Documentation</div>
+            <div style={{ ...base, fontSize: 11, color: colors.textDim, lineHeight: 1.8 }}>
+              Multi-angle exterior photos<br/>Interior compartment photos<br/>Damage-area close-ups<br/>Each photo SHA-256 hashed<br/>Timestamp + GPS embedded<br/>Stored in immutable audit log
+            </div>
+          </Card>
+          <Card style={{ borderTop: `3px solid ${colors.green}` }}>
+            <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>🔧 IoT Diagnostic Telemetry</div>
+            <div style={{ ...base, fontSize: 11, color: colors.textDim, lineHeight: 1.8 }}>
+              Engine diagnostic codes (DTC)<br/>Fluid pressure readings<br/>Hours of operation counter<br/>Battery voltage snapshot<br/>Hydraulic system status<br/>All telemetry SHA-256 hashed
+            </div>
+          </Card>
+          <Card style={{ borderTop: `3px solid ${colors.purple}` }}>
+            <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>📋 Digital Inspection Checklist</div>
+            <div style={{ ...base, fontSize: 11, color: colors.textDim, lineHeight: 1.8 }}>
+              Tracks/tires condition<br/>Hydraulic system check<br/>Safety equipment inventory<br/>Fluid levels verification<br/>Operator signature (digital)<br/>Checklist hash recorded
+            </div>
+          </Card>
+        </div>
+
+        <Card>
+          <div style={{ ...base, fontSize: 12, fontWeight: 700, color: colors.purple, marginBottom: 12 }}>CLOSED-LOOP FEEDBACK → MATCHING ENGINE</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 4 }}>
+            {["Transfer Complete", "Return Inspection", "Pre/Post Comparison", "Discrepancy Score", "OCS Update → Engine"].map((s, i) => (
+              <div key={i} style={{ ...base, fontSize: 10, padding: 10, background: colors.surfaceLight, border: `1px solid ${colors.border}`, borderRadius: 4, textAlign: "center" }}>
+                <div style={{ fontSize: 18, marginBottom: 4 }}>{["🚛","🔍","⚖️","📊","↻"][i]}</div>
+                {s}
+                {i < 4 && <div style={{ color: colors.purple, marginTop: 4 }}>→</div>}
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 12, ...base, fontSize: 10, color: colors.textDim, padding: 10, background: colors.bg, borderRadius: 4 }}>
+            OCS = 1.0 − (weighted_decay_constant × condition_discrepancy_rate) | Organizations with poor stewardship receive lower match priority automatically. The system learns from every transfer.
+          </div>
+        </Card>
+
+        <div style={{ ...base, fontSize: 11, fontWeight: 700, marginTop: 24, marginBottom: 8 }}>CLICK ANY EQUIPMENT TO VIEW CONDITION DETAIL</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
+          {EQUIPMENT.filter(e => e.status !== "Active").slice(0, 5).map(e => (
+            <Card key={e.id} hoverable onClick={() => setCondEq(e)} style={{ padding: 10 }}>
+              <div style={{ ...base, fontSize: 10, fontWeight: 600 }}>{e.type.split(" ").slice(0,2).join(" ")}</div>
+              <div style={{ ...base, fontSize: 9, color: colors.textDim }}>{INSTALLATIONS.find(i => i.id === e.install)?.name}</div>
+              <div style={{ marginTop: 4 }}><Badge color={e.condition === "Serviceable" ? colors.green : colors.amber}>{e.condition}</Badge></div>
+            </Card>
+          ))}
+        </div>
+      </>}
+
+      {/* ── ANALYTICS ── */}
+      {tab === "analytics" && <>
+        <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 16 }}>COST AVOIDANCE ANALYTICS — PILOT EXECUTIVE SUMMARY</div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+          <Card><Stat label="Total Cost Avoidance" value={`$${(totalAvoidance/1e6).toFixed(1)}M`} color={colors.green} /></Card>
+          <Card><Stat label="Matches Generated" value={MATCHES.length} color={colors.accent} /></Card>
+          <Card><Stat label="Avg per Match" value={`$${Math.round(totalAvoidance/MATCHES.length/1000)}K`} color={colors.green} /></Card>
+          <Card><Stat label="Pilot ROI" value={`${(totalAvoidance/575000).toFixed(1)}x`} sub="on $575K investment" color={colors.green} /></Card>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <Card>
+            <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 12 }}>AVOIDANCE BY SOURCE INSTALLATION</div>
+            {INSTALLATIONS.filter(inst => MATCHES.some(m => m.src.id === inst.id)).map(inst => {
+              const instAvoidance = MATCHES.filter(m => m.src.id === inst.id).reduce((s, m) => s + m.net, 0);
+              return <div key={inst.id} style={{ marginBottom: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                  <span style={{ ...base, fontSize: 11 }}>{inst.name} <span style={{ color: colors.textDim }}>({inst.branch})</span></span>
+                  <span style={{ ...base, fontSize: 11, color: colors.green, fontWeight: 600 }}>${(instAvoidance/1000).toFixed(0)}K</span>
+                </div>
+                <ProgressBar value={instAvoidance} max={totalAvoidance} color={colors.green} />
+              </div>;
+            })}
+          </Card>
+          <Card>
+            <div style={{ ...base, fontSize: 12, fontWeight: 700, marginBottom: 12 }}>PILOT METRICS</div>
+            <div style={{ ...base, fontSize: 11, lineHeight: 2.2 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: `1px solid ${colors.border}`, padding: "4px 0" }}>
+                <span style={{ color: colors.textDim }}>Equipment Tracked</span><span style={{ fontWeight: 600 }}>{EQUIPMENT.length} items</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: `1px solid ${colors.border}`, padding: "4px 0" }}>
+                <span style={{ color: colors.textDim }}>Idle Rate Detected</span><span style={{ fontWeight: 600, color: colors.amber }}>{Math.round(idleEquip/EQUIPMENT.length*100)}%</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: `1px solid ${colors.border}`, padding: "4px 0" }}>
+                <span style={{ color: colors.textDim }}>Cross-Service Matches</span><span style={{ fontWeight: 600, color: colors.purple }}>{crossService} of {MATCHES.length}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: `1px solid ${colors.border}`, padding: "4px 0" }}>
+                <span style={{ color: colors.textDim }}>Avg Match Confidence</span><span style={{ fontWeight: 600 }}>{(MATCHES.reduce((s,m) => s+m.composite, 0)/MATCHES.length*100).toFixed(1)}%</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: `1px solid ${colors.border}`, padding: "4px 0" }}>
+                <span style={{ color: colors.textDim }}>Phase 1 Investment</span><span style={{ fontWeight: 600 }}>$575,000</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
+                <span style={{ color: colors.textDim }}>Data Source</span><span style={{ fontWeight: 600 }}>DPAS Batch (Daily CSV)</span>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </>}
+    </div>
+
+    {/* Footer */}
+    <div style={{ borderTop: `1px solid ${colors.border}`, padding: "12px 24px", textAlign: "center" }}>
+      <span style={{ ...base, fontSize: 10, color: colors.textDim }}>
+        DEMO — SYNTHETIC DATA — NOT CONNECTED TO GOVERNMENT SYSTEMS | Izy Global Services LLC · SBA-Certified SDVOSB · U.S. Patent Application 19/639,216
+      </span>
+    </div>
+  </div>;
+}
