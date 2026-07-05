@@ -7,17 +7,21 @@
 <title>GovLeaseAI — DoD Secure Access</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f4f6f9;--white:#fff;--border:#e0e4ec;--border-lt:#eef1f6;--navy:#0f1a2e;--accent:#2563eb;--accent-lt:#dbeafe;--green:#059669;--green-lt:#d1fae5;--red:#dc2626;--red-lt:#fee2e2;--amber:#d97706;--amber-lt:#fef3c7;--amber-dk:#92400e;--purple:#7c3aed;--purple-lt:#ede9fe;--cyan:#0891b2;--tx:#1a202c;--tm:#4a5568;--tl:#94a3b8;--mono:'JetBrains Mono',monospace;--sans:'DM Sans',system-ui,sans-serif;}
+:root{--bg:#f4f6f9;--white:#fff;--border:#e0e4ec;--border-lt:#eef1f6;--navy:#0f1a2e;--nav-bg:#0f1a2e;--accent:#2563eb;--accent-lt:#dbeafe;--green:#059669;--green-lt:#d1fae5;--red:#dc2626;--red-lt:#fee2e2;--amber:#d97706;--amber-lt:#fef3c7;--amber-dk:#92400e;--purple:#7c3aed;--purple-lt:#ede9fe;--cyan:#0891b2;--tx:#1a202c;--tm:#4a5568;--tl:#94a3b8;--surface:var(--surface);--hover:var(--hover);--green-bg:var(--green-bg);--red-bg:var(--red-bg);--amber-bg:var(--amber-bg);--map-land:#f8fafc;--map-border:#cbd5e1;--banner-a:#eff6ff;--banner-b:var(--green-bg);--shadow:0 1px 4px rgba(0,0,0,.04);--shadow-hover:0 2px 10px rgba(0,0,0,.06);--mono:'JetBrains Mono',monospace;--sans:'DM Sans',system-ui,sans-serif;}
+html[data-theme=cmd]{--bg:#080f1c;--white:#101b2e;--border:#22304a;--border-lt:#192539;--navy:#0b1424;--nav-bg:#0b1424;--accent:#3b82f6;--accent-lt:#122a4f;--green:#10b981;--green-lt:#0b2e24;--red:#f87171;--red-lt:#3a1520;--amber:#fbbf24;--amber-lt:#3a2a10;--amber-dk:#fcd34d;--purple:#a78bfa;--purple-lt:#241a45;--tx:#e6edf7;--tm:#9db0cc;--tl:#5f7290;--surface:#0d1728;--hover:#152238;--green-bg:#0b2e24;--red-bg:#3a1520;--amber-bg:#3a2a10;--map-land:#0d1a2e;--map-border:#2a3f60;--banner-a:#0e2040;--banner-b:#0b2e24;--shadow:0 0 0 1px rgba(59,130,246,.06),0 6px 20px rgba(0,0,0,.55);--shadow-hover:0 0 0 1px rgba(59,130,246,.14),0 8px 26px rgba(0,0,0,.6);}
+html[data-theme=cmd] body{background-image:linear-gradient(rgba(59,130,246,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.035) 1px,transparent 1px);background-size:34px 34px}
+html[data-theme=cmd] nav{border-bottom:1px solid var(--border)}
+body,.card,nav,footer,td,th{transition:background-color .25s,border-color .25s,color .25s}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:var(--sans);background:var(--bg);color:var(--tx);font-size:14px;line-height:1.5}
 button{font-family:var(--sans);cursor:pointer;outline:none;border:none;background:none}
 input,select{font-family:var(--sans);outline:none}
-::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:#f0f0f0}::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--surface)}::-webkit-scrollbar-thumb{background:var(--tl);border-radius:3px}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 @keyframes slideIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
-.card{background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.04);overflow:hidden}
-.card:hover{box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.card{background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.card:hover{box-shadow:var(--shadow-hover)}
 .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
 .btn{padding:9px 20px;border-radius:8px;font-size:13px;font-weight:600;transition:all .15s}
 .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#1d4ed8}
@@ -26,8 +30,15 @@ input,select{font-family:var(--sans);outline:none}
 table{width:100%;border-collapse:collapse}
 th{font-size:11px;font-weight:600;color:var(--tl);text-align:left;padding:10px 16px;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--border)}
 td{padding:11px 16px;border-bottom:1px solid var(--border-lt);font-size:13px}
-tr:hover{background:#fafbfc}
+tr:hover{background:var(--hover)}
 .mono{font-family:var(--mono)}
+#sidebar{width:216px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;padding:12px 10px;z-index:40}
+.side-head{font-size:9px;letter-spacing:1.5px;color:var(--tl);font-weight:700;padding:14px 12px 5px}
+.side-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 12px;border-radius:8px;font-size:13px;color:var(--tm);border-left:3px solid transparent;margin:1px 0;transition:background .15s,color .15s}
+.side-item:hover{background:var(--hover);color:var(--tx)}
+.side-item.active{background:var(--accent-lt);color:var(--accent);font-weight:600;border-left-color:var(--accent)}
+#side-toggle{display:none;color:#94a3b8;font-size:18px;padding:2px 8px}
+@media(max-width:900px){#side-toggle{display:block}#sidebar{position:fixed;left:-240px;top:52px;transition:left .25s ease;box-shadow:4px 0 24px rgba(0,0,0,.3)}#sidebar.open{left:0}}
 .hidden{display:none!important}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal{background:var(--white);border:1px solid var(--border);border-radius:14px;width:100%;max-height:90vh;overflow:auto;animation:slideIn .2s ease}
@@ -37,8 +48,8 @@ tr:hover{background:#fafbfc}
 .step-bar{display:flex;gap:3px;padding:10px 24px;border-bottom:1px solid var(--border)}
 .step-bar div{flex:1;height:4px;border-radius:2px;background:var(--border);transition:background .3s}
 .grid{display:grid;gap:14px}
-.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}
-@media(max-width:900px){.g2,.g3,.g4,.g5{grid-template-columns:1fr}}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}.g21{grid-template-columns:2fr 1fr}
+@media(max-width:900px){.g2,.g21,.g3,.g4,.g5{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -78,14 +89,16 @@ tr:hover{background:#fafbfc}
 <div id="app" class="hidden" style="min-height:100vh;display:flex;flex-direction:column">
 
 <!-- NAV -->
-<nav style="background:var(--navy);padding:0 24px;display:flex;align-items:center;height:52px">
-<div style="font-size:18px;font-weight:800;color:#fff;margin-right:40px;letter-spacing:.5px">GovLeaseAI</div>
-<div id="nav-tabs" style="display:flex;gap:0;flex:1;overflow-x:auto"></div>
-<div style="display:flex;align-items:center;gap:10px"><span style="font-size:11px;color:#94a3b8">Ismaila Raji · SECRET</span><div style="width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700">IR</div></div>
+<nav style="background:var(--navy);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:60">
+<div style="display:flex;align-items:center;gap:10px"><button id="side-toggle" onclick="toggleSidebar()">☰</button><div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:.5px">GovLeaseAI</div><span style="font-size:9px;letter-spacing:1.5px;color:#64748b;border:1px solid #334155;padding:2px 8px;border-radius:10px;margin-left:4px">v1.0</span></div>
+<div style="display:flex;align-items:center;gap:12px"><button onclick="toggleTheme()" id="theme-btn" title="Toggle Command/Light mode" style="color:#94a3b8;font-size:14px;padding:4px 8px;border:1px solid #334155;border-radius:6px">🌙</button><div style="position:relative"><button onclick="toggleBell()" style="color:#94a3b8;font-size:16px;position:relative;padding:4px">🔔<span id="bell-badge" style="display:none;position:absolute;top:-2px;right:-4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:8px;align-items:center;justify-content:center;padding:0 3px">0</span></button><div id="bell-drop" class="hidden card" style="position:absolute;right:0;top:36px;width:300px;z-index:150;max-height:320px;overflow:auto"></div></div><button onclick="startTour()" style="color:#93c5fd;font-size:11px;font-weight:600;border:1px solid #334155;padding:5px 12px;border-radius:6px;white-space:nowrap">▶ Tour</button><span style="font-size:11px;color:#94a3b8;white-space:nowrap">Ismaila Raji · SECRET</span><div style="width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;flex-shrink:0">IR</div></div>
 </nav>
 
-<!-- PAGE CONTENT -->
-<main id="content" style="flex:1;padding:24px;max-width:1300px;margin:0 auto;width:100%"></main>
+<!-- BODY: SIDEBAR + CONTENT -->
+<div style="flex:1;display:flex;align-items:stretch;min-height:0">
+<aside id="sidebar"></aside>
+<main id="content" style="flex:1;padding:24px;max-width:1240px;margin:0 auto;width:100%;min-width:0"></main>
+</div>
 
 <!-- FOOTER -->
 <footer style="padding:10px 24px;border-top:1px solid var(--border);background:var(--white);display:flex;justify-content:space-between;font-size:10px;color:var(--tl)">
@@ -98,6 +111,11 @@ tr:hover{background:#fafbfc}
 <div id="modal-overlay" class="overlay hidden" onclick="closeModal()"><div id="modal-content" class="modal" style="max-width:720px" onclick="event.stopPropagation()"></div></div>
 
 <script>
+// ===== THEME (Command Mode default) =====
+let theme="light";try{theme=localStorage.getItem("glai-theme")||"light"}catch(e){}
+function applyTheme(){document.documentElement.setAttribute("data-theme",theme);const b=document.getElementById("theme-btn");if(b)b.textContent=theme==="cmd"?"☀":"🌙"}
+function toggleTheme(){theme=theme==="cmd"?"light":"cmd";try{localStorage.setItem("glai-theme",theme)}catch(e){}applyTheme()}
+applyTheme();
 // ===== DATA ENGINE =====
 const INST=[{id:"hood",name:"Fort Cavazos",branch:"Army",state:"TX",lat:31.13,lng:-97.78},{id:"bliss",name:"Fort Bliss",branch:"Army",state:"TX",lat:31.81,lng:-106.42},{id:"sill",name:"Fort Sill",branch:"Army",state:"OK",lat:34.65,lng:-98.40},{id:"polk",name:"Fort Johnson",branch:"Army",state:"LA",lat:31.05,lng:-93.20},{id:"lejeune",name:"Camp Lejeune",branch:"Marines",state:"NC",lat:34.62,lng:-77.35},{id:"pendleton",name:"Camp Pendleton",branch:"Marines",state:"CA",lat:33.30,lng:-117.35},{id:"norfolk",name:"NB Norfolk",branch:"Navy",state:"VA",lat:36.95,lng:-76.33},{id:"ellsworth",name:"Ellsworth AFB",branch:"Air Force",state:"SD",lat:44.15,lng:-103.10}];
 
@@ -120,11 +138,28 @@ const totalCA=matches.reduce((s,m)=>s+m.av,0);
 const xsCount=matches.filter(m=>m.xs).length;
 
 // ===== HELPERS =====
-const bColors={Army:"var(--green)",Marines:"var(--red)",Navy:"var(--accent)","Air Force":"var(--purple)",High:"var(--red)",Medium:"var(--amber)",Low:"var(--tl)",Active:"var(--green)",Idle:"var(--amber)",Maintenance:"var(--red)","In-Transit":"var(--accent)",Reserved:"var(--tl)",Good:"var(--green)",Fair:"var(--amber)","Cross-Service":"var(--purple)"};
+const bColors={Army:"#059669",Marines:"#ef4444",Navy:"#3b82f6","Air Force":"#a78bfa",High:"#ef4444",Medium:"#f59e0b",Low:"#94a3b8",Active:"#059669",Idle:"#f59e0b",Maintenance:"#ef4444","In-Transit":"#3b82f6",Reserved:"#94a3b8",Good:"#059669",Fair:"#f59e0b","Cross-Service":"#a78bfa",HUMAN:"#f59e0b",AUTO:"#059669",Indexed:"#059669",Mapped:"#3b82f6",Quarantined:"#ef4444","Heuristic Suggestion":"#f59e0b","Manual Review":"#ef4444"};
 function badge(text){const c=bColors[text]||"var(--tl)";return `<span class="badge" style="background:${c}15;color:${c};border:1px solid ${c}30">${text}</span>`}
 function pb(val,max=100,color="var(--accent)"){const p=Math.min(100,val/max*100);return `<div class="pb"><div class="pb-fill" style="width:${p}%;background:${color}"></div></div>`}
 function $(id){return document.getElementById(id)}
 function fmt(n){return n.toLocaleString()}
+
+// ===== LIVE FX: counters, sparklines, activity feed =====
+function spark(data,color){const w=72,h=26,mx=Math.max(...data),mn=Math.min(...data);const pts=data.map((v,i)=>((i/(data.length-1)*w).toFixed(1))+","+((h-3-(v-mn)/(mx-mn||1)*(h-6)).toFixed(1))).join(" ");const last=pts.split(" ").pop().split(",");return `<svg width="${w}" height="${h}" style="display:block;opacity:.9"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round"/><circle cx="${last[0]}" cy="${last[1]}" r="2.5" fill="${color}"/></svg>`}
+function animateCount(el){const target=parseFloat(el.dataset.t),dec=+(el.dataset.d||0),pre=el.dataset.p||"",suf=el.dataset.s||"";const t0=performance.now();function step(t){const p=Math.min(1,(t-t0)/900),e=1-Math.pow(1-p,3);el.textContent=pre+(target*e).toFixed(dec)+suf;if(p<1)requestAnimationFrame(step)}requestAnimationFrame(step)}
+const ACTIVITY=[];let bellCount=0;
+function pushActivity(ev){ACTIVITY.unshift(ev);if(ACTIVITY.length>30)ACTIVITY.pop();bellCount++;const bb=$("bell-badge");if(bb){bb.textContent=bellCount;bb.style.display="flex"}const feed=$("act-feed");if(feed){const d=document.createElement("div");d.style.cssText="padding:9px 14px;border-bottom:1px solid var(--border-lt);font-size:12px;display:flex;gap:8px;animation:fadeUp .4s ease";d.innerHTML=`<span>${ev.i}</span><div style="flex:1"><div>${ev.t}</div><div style="font-size:10px;color:var(--tl)" class="mono">${ev.ts}</div></div>`;feed.prepend(d);while(feed.children.length>9)feed.lastChild.remove()}}
+function genActivity(){const r=Math.random(),m=matches[Math.floor(Math.random()*matches.length)],e=equipment[Math.floor(Math.random()*equipment.length)],ts=new Date().toLocaleTimeString("en-US",{hour12:false});
+if(r<.25)return{i:"🎯",t:`Match signal: <b>${m.type.split(" ").slice(-1)[0]}</b> ${m.src.name} → ${m.dst.name} · <b style="color:var(--green)">$${(m.av/1000).toFixed(0)}K</b>`,ts};
+if(r<.45)return{i:"🚫",t:`Requisition <span class="mono">${m.dem.rq}</span> flagged — idle asset ${m.dist} mi away`,ts};
+if(r<.6)return{i:"🔐",t:`Officer authorization token validated — MIPR execution resumed`,ts};
+if(r<.75)return{i:"📸",t:`Condition baseline hashed — <span class="mono">${e.id}</span> at ${e.instName}`,ts};
+if(r<.88)return{i:"📥",t:`DPAS batch ingested — ${40+Math.floor(Math.random()*30)} records · ${Math.floor(Math.random()*3)} quarantined`,ts};
+return{i:"📊",t:`OCS updated: ${e.instName} → <b>0.9${Math.floor(Math.random()*50+10)}</b>`,ts}}
+let actTimer=null;
+function startActivityEngine(){if(actTimer)return;pushActivity(genActivity());pushActivity(genActivity());actTimer=setInterval(()=>pushActivity(genActivity()),7000)}
+function toggleBell(){const d=$("bell-drop");if(!d)return;d.classList.toggle("hidden");if(!d.classList.contains("hidden")){bellCount=0;const bb=$("bell-badge");if(bb)bb.style.display="none";d.innerHTML=ACTIVITY.slice(0,6).map(ev=>`<div style="padding:9px 12px;border-bottom:1px solid var(--border-lt);font-size:11px;display:flex;gap:8px;text-align:left"><span>${ev.i}</span><div>${ev.t}<div style="font-size:9px;color:var(--tl)" class="mono">${ev.ts}</div></div></div>`).join("")||`<div style="padding:14px;font-size:11px;color:var(--tl)">No alerts yet</div>`}}
+function initDashFX(){document.querySelectorAll(".cnt").forEach(animateCount);const feed=$("act-feed");if(feed)feed.innerHTML=ACTIVITY.slice(0,9).map(ev=>`<div style="padding:9px 14px;border-bottom:1px solid var(--border-lt);font-size:12px;display:flex;gap:8px"><span>${ev.i}</span><div style="flex:1"><div>${ev.t}</div><div style="font-size:10px;color:var(--tl)" class="mono">${ev.ts}</div></div></div>`).join("")}
 
 // ===== LOGIN =====
 function showCACLogin(){$("login-banner").classList.add("hidden");$("login-cac").classList.remove("hidden")}
@@ -132,15 +167,29 @@ function doLogin(){const pin=$("cac-pin").value.replace(/\D/g,"");if(pin.length<
 
 // ===== APP =====
 let currentTab="dashboard";
-const TABS=[{id:"dashboard",label:"Dashboard"},{id:"equipment",label:"Equipment"},{id:"normalization",label:"Normalization"},{id:"matching",label:"Matching Engine"},{id:"alerts",label:"Procurement Alerts"},{id:"financial",label:"Financial Workflow"},{id:"condition",label:"Condition Tracking"},{id:"adjudication",label:"Damage Adjudication"},{id:"transportation",label:"Transportation"},{id:"cost",label:"Cost Avoidance"}];
+const TABS=[
+{id:"dashboard",label:"Dashboard",icon:"📊",grp:"OVERVIEW"},
+{id:"equipment",label:"Equipment",icon:"🚜",grp:"ASSETS"},
+{id:"normalization",label:"Normalization",icon:"🔄",grp:"ASSETS"},
+{id:"matching",label:"Matching Engine",icon:"🎯",grp:"INTELLIGENCE"},
+{id:"alerts",label:"Procurement Alerts",icon:"🚨",grp:"INTELLIGENCE"},
+{id:"financial",label:"Financial Workflow",icon:"🏦",grp:"EXECUTION"},
+{id:"transportation",label:"Transportation",icon:"🚛",grp:"EXECUTION"},
+{id:"condition",label:"Condition Tracking",icon:"📸",grp:"ACCOUNTABILITY"},
+{id:"adjudication",label:"Damage Adjudication",icon:"⚖️",grp:"ACCOUNTABILITY"},
+{id:"cost",label:"Cost Avoidance",icon:"💰",grp:"ANALYTICS"},
+];
 
 function initApp(){
-const nav=$("nav-tabs");
-nav.innerHTML=TABS.map(t=>`<button onclick="switchTab('${t.id}')" id="tab-${t.id}" style="padding:14px 11px;font-size:11px;white-space:nowrap;font-weight:${t.id===currentTab?600:400};color:${t.id===currentTab?"#fff":"#94a3b8"};background:${t.id===currentTab?"rgba(255,255,255,.1)":"transparent"};border-bottom:${t.id===currentTab?"2px solid var(--accent)":"2px solid transparent"}">${t.label}</button>`).join("");
-renderPage();
+const sb=$("sidebar");let html="",lastG="";
+TABS.forEach(t=>{if(t.grp!==lastG){html+=`<div class="side-head">${t.grp}</div>`;lastG=t.grp}
+html+=`<button class="side-item${t.id===currentTab?" active":""}" id="tab-${t.id}" onclick="switchTab('${t.id}')"><span style="font-size:15px">${t.icon}</span><span>${t.label}</span></button>`});
+sb.innerHTML=html;
+renderPage();startActivityEngine();
 }
 
-function switchTab(id){currentTab=id;TABS.forEach(t=>{const el=$("tab-"+t.id);if(el){el.style.fontWeight=t.id===id?600:400;el.style.color=t.id===id?"#fff":"#94a3b8";el.style.background=t.id===id?"rgba(255,255,255,.1)":"transparent";el.style.borderBottom=t.id===id?"2px solid var(--accent)":"2px solid transparent"}});renderPage()}
+function switchTab(id){currentTab=id;document.querySelectorAll(".side-item").forEach(el=>el.classList.remove("active"));const a=$("tab-"+id);if(a)a.classList.add("active");const sb=$("sidebar");if(sb)sb.classList.remove("open");renderPage()}
+function toggleSidebar(){const sb=$("sidebar");if(sb)sb.classList.toggle("open")}
 
 function renderPage(){
 const c=$("content");c.style.animation="none";c.offsetHeight;c.style.animation="fadeUp .3s ease forwards";
@@ -158,25 +207,66 @@ case"cost":renderCostAvoidance();break;
 }}
 
 // ===== DASHBOARD =====
+function mapXY(lat,lng){return[((lng+125)/59*960).toFixed(1),((49-lat)/25*600).toFixed(1)]}
+const US_PATH="M5,14 L33,0 L488,0 L602,24 L659,60 L692,96 L688,175 L748,137 L784,130 L818,96 L870,96 L931,46 L945,101 L895,127 L885,175 L830,204 L814,245 L797,288 L805,331 L750,365 L716,408 L732,533 L726,571 L703,588 L688,516 L667,454 L646,463 L586,475 L504,463 L452,552 L421,542 L384,461 L330,442 L301,413 L228,425 L166,396 L129,396 L107,367 L72,346 L50,298 L21,242 L10,206 L16,134 L16,65 Z";
+
 function renderDashboard(){
 const topMatches=matches.slice(0,4).map(m=>`<tr onclick="openMipr(${matches.indexOf(m)})" style="cursor:pointer"><td style="font-weight:500">${m.type.split(" ").slice(-1)[0]}</td><td style="font-size:11px">${m.src.name} → ${m.dst.name}</td><td style="font-weight:600;color:var(--green)">$${(m.av/1000).toFixed(0)}K</td><td><span style="font-weight:600;color:${m.cp>.8?"var(--green)":"var(--amber)"}">${(m.cp*100).toFixed(0)}%</span></td></tr>`).join("");
 const topDem=DEMANDS.slice(0,4).map(d=>`<tr><td>${INST.find(i=>i.id===d.instId)?.name}</td><td>${d.type.split(" ").slice(-1)[0]}</td><td style="color:var(--tl)">${d.date}</td><td>${badge(d.ug)}</td></tr>`).join("");
 const bars=INST.filter(inst=>matches.some(m=>m.src.name===inst.name)).slice(0,5).map(inst=>{const ia=matches.filter(m=>m.src.name===inst.name).reduce((s,m)=>s+m.av,0);const mx=Math.max(...INST.map(i=>matches.filter(m=>m.src.name===i.name).reduce((s,m)=>s+m.av,0)),1);return`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>${inst.name}</span><span style="font-weight:600;color:var(--green)">$${(ia/1000).toFixed(0)}K</span></div><div class="pb"><div class="pb-fill" style="width:${ia/mx*100}%;background:linear-gradient(90deg,var(--accent),var(--green))"></div></div></div>`}).join("");
 
+// Map: routes for top 6 matches + installation dots
+const bcMap={Army:"#059669",Marines:"#dc2626",Navy:"#2563eb","Air Force":"#7c3aed"};
+const routes=matches.slice(0,6).map((m,i)=>{const[x1,y1]=mapXY(m.src.lat,m.src.lng);const[x2,y2]=mapXY(m.dst.lat,m.dst.lng);const mx=(+x1+ +x2)/2,my=Math.min(+y1,+y2)-40;return`<path d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" fill="none" stroke="${m.xs?"#7c3aed":"#2563eb"}" stroke-width="2" stroke-dasharray="6,4" opacity=".7"><animate attributeName="stroke-dashoffset" from="20" to="0" dur="1.5s" repeatCount="indefinite"/></path>`}).join("");
+const dots=INST.map(inst=>{const[x,y]=mapXY(inst.lat,inst.lng);const c=bcMap[inst.branch];const idleHere=equipment.filter(e=>e.instId===inst.id&&e.status==="Idle").length;return`<g style="cursor:pointer" onclick="switchTab('equipment')"><title>${inst.name} — ${inst.branch} · ${equipment.filter(e=>e.instId===inst.id).length} assets · ${idleHere} idle</title><circle cx="${x}" cy="${y}" r="14" fill="${c}22"><animate attributeName="r" values="14;20;14" dur="2.5s" repeatCount="indefinite"/></circle><circle cx="${x}" cy="${y}" r="6" fill="${c}" stroke="#fff" stroke-width="2"/><text x="${x}" y="${+y-22}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--tx)">${inst.name}</text><text x="${x}" y="${+y+28}" text-anchor="middle" font-size="10" fill="var(--tl)">${idleHere} idle</text></g>`}).join("");
+
+// FY26 cumulative trend (seeded synthetic)
+const rr=rng(7);let cum=0;const monthly=Array.from({length:12},()=>{cum+=totalCA/12*(0.5+rr());return cum});const mScale=monthly[11];
+const MOS=["OCT","NOV","DEC","JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP"];
+const tCoords=monthly.map((v,i)=>[40+i*47,152-(v/mScale)*118]);
+const tLine=tCoords.map(c=>c.join(",")).join(" ");
+const tArea="M"+tCoords[0].join(",")+" "+tCoords.slice(1).map(c=>"L"+c.join(",")).join(" ")+` L${tCoords[11][0]},152 L40,152 Z`;
+
 $("content").innerHTML=`
-<h1 style="font-size:22px;font-weight:700;margin-bottom:4px">Welcome, Ismaila!</h1>
-<p style="color:var(--tm);margin-bottom:20px;font-size:13px">Cross-service equipment visibility and transfer management</p>
-<div class="grid g4" style="margin-bottom:20px">
-<div class="card" style="padding:18px 20px"><div style="font-size:28px;font-weight:700">${equipment.length}</div><div style="font-size:12px;color:var(--tm)">Total Equipment</div><div style="font-size:11px;color:var(--tl)">Class IV · 8 installations</div></div>
-<div class="card" style="padding:18px 20px"><div style="font-size:28px;font-weight:700">${matches.length}</div><div style="font-size:12px;color:var(--tm)">AI Matches</div><div style="font-size:11px;color:var(--tl)">${xsCount} cross-service</div></div>
-<div class="card" style="padding:18px 20px"><div style="font-size:28px;font-weight:700;color:var(--amber)">${idleCount}</div><div style="font-size:12px;color:var(--tm)">Idle Equipment</div><div style="font-size:11px;color:var(--tl)">Available for transfer</div></div>
-<div class="card" style="padding:18px 20px"><div style="font-size:28px;font-weight:700;color:var(--green)">$${(totalCA/1e6).toFixed(1)}M</div><div style="font-size:12px;color:var(--tm)">Cost Avoidance</div><div style="font-size:11px;color:var(--tl)">Potential savings</div></div>
+<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+<div><h1 style="font-size:22px;font-weight:700;margin-bottom:2px">Welcome, Ismaila!</h1>
+<p style="color:var(--tm);font-size:13px">Cross-service equipment visibility and transfer management</p></div>
+<button onclick="startTour()" class="btn btn-primary" style="display:flex;align-items:center;gap:8px">▶ Guided Demo Tour</button>
+</div>
+<div class="card" style="margin-bottom:16px;background:linear-gradient(90deg,var(--banner-a),var(--banner-b));border-left:4px solid var(--accent)"><div style="padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+<span style="font-size:22px">🇺🇸</span>
+<div style="flex:1;min-width:280px"><div style="font-size:12px;font-weight:700;color:var(--accent)">EXECUTIVE ORDER ALIGNMENT</div>
+<div style="font-size:12px;color:var(--tm)">Direct implementation of the President's March 20, 2025 EO on <b>Eliminating Information Silos</b> and the Feb 26, 2025 <b>Cost Efficiency Initiative</b> — every intercepted procurement is waste eliminated.</div></div>
+</div></div>
+<div class="grid g4" style="margin-bottom:16px">
+<div class="card" style="padding:16px 20px;border-top:3px solid var(--accent)"><div style="display:flex;justify-content:space-between;align-items:flex-end"><div style="font-size:28px;font-weight:700" class="cnt" data-t="${equipment.length}" data-d="0">0</div>${spark([48,52,55,58,61,63,65,equipment.length],"var(--accent)")}</div><div style="font-size:12px;color:var(--tm)">Total Equipment</div><div style="font-size:11px;color:var(--tl)">Class IV · 8 installations · 4 branches</div></div>
+<div class="card" style="padding:16px 20px;border-top:3px solid var(--purple)"><div style="display:flex;justify-content:space-between;align-items:flex-end"><div style="font-size:28px;font-weight:700" class="cnt" data-t="${matches.length}" data-d="0">0</div>${spark([8,11,13,14,16,17,19,matches.length],"var(--purple)")}</div><div style="font-size:12px;color:var(--tm)">AI Matches</div><div style="font-size:11px;color:var(--tl)">${xsCount} cross-service opportunities</div></div>
+<div class="card" style="padding:16px 20px;border-top:3px solid var(--amber)"><div style="display:flex;justify-content:space-between;align-items:flex-end"><div style="font-size:28px;font-weight:700;color:var(--amber)" class="cnt" data-t="${idleCount}" data-d="0">0</div>${spark([31,29,30,28,27,26,25,idleCount],"var(--amber)")}</div><div style="font-size:12px;color:var(--tm)">Idle Equipment</div><div style="font-size:11px;color:var(--tl)">Available for lateral transfer</div></div>
+<div class="card" style="padding:16px 20px;border-top:3px solid var(--green)"><div style="display:flex;justify-content:space-between;align-items:flex-end"><div style="font-size:28px;font-weight:700;color:var(--green)" class="cnt" data-t="${(totalCA/1e6).toFixed(1)}" data-d="1" data-p="$" data-s="M">$0.0M</div>${spark([.8,1.4,1.9,2.6,3.1,3.7,4.1,totalCA/1e6],"var(--green)")}</div><div style="font-size:12px;color:var(--tm)">Cost Avoidance</div><div style="font-size:11px;color:var(--tl)">${Math.round(totalCA/575000)}x ROI on Phase 1</div></div>
+</div>
+<div class="grid g21" style="margin-bottom:16px">
+<div class="card"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600;display:flex;justify-content:space-between;align-items:center"><span>LIVE OPERATIONS MAP</span><span style="font-size:11px;color:var(--tl);font-weight:400">Animated routes = active match signals · Purple = cross-service</span></div>
+<div style="padding:10px 20px 16px;overflow-x:auto"><svg viewBox="0 0 960 620" style="width:100%;min-width:600px;height:auto">
+<path d="${US_PATH}" fill="var(--map-land)" stroke="var(--map-border)" stroke-width="1.5"/>
+${routes}${dots}
+<g font-size="11" fill="var(--tl)"><circle cx="30" cy="600" r="5" fill="#059669"/><text x="42" y="604">Army</text><circle cx="100" cy="600" r="5" fill="#dc2626"/><text x="112" y="604">Marines</text><circle cx="185" cy="600" r="5" fill="#2563eb"/><text x="197" y="604">Navy</text><circle cx="255" cy="600" r="5" fill="#7c3aed"/><text x="267" y="604">Air Force</text></g>
+</svg></div></div>
+<div class="card" style="display:flex;flex-direction:column;min-height:0"><div style="padding:14px 16px;border-bottom:1px solid var(--border);font-weight:600;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;flex-shrink:0"></span>LIVE ACTIVITY<span style="margin-left:auto;font-size:10px;color:var(--tl);font-weight:400" class="mono">DPAS SYNC 04:00 ET</span></div><div id="act-feed" style="flex:1;overflow:auto;max-height:440px"></div></div>
 </div>
 <div class="grid g2" style="margin-bottom:16px">
 <div class="card"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600;display:flex;justify-content:space-between"><span>TRANSFER REQUESTS</span><button onclick="switchTab('financial')" style="color:var(--accent);font-size:12px">View all →</button></div><table><thead><tr><th>Installation</th><th>Equipment</th><th>Date</th><th>Urgency</th></tr></thead><tbody>${topDem}</tbody></table></div>
 <div class="card"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600;display:flex;justify-content:space-between"><span>TOP AI MATCHES</span><button onclick="switchTab('matching')" style="color:var(--accent);font-size:12px">View all →</button></div><table><thead><tr><th>Equipment</th><th>Route</th><th>Savings</th><th>Score</th></tr></thead><tbody>${topMatches}</tbody></table></div>
 </div>
-<div class="card"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600">COST AVOIDANCE SUMMARY</div><div style="padding:20px;display:flex;gap:40px;align-items:center;flex-wrap:wrap"><div><div style="font-size:36px;font-weight:700;color:var(--green)">$${(totalCA/1e6).toFixed(2)}M</div><div style="font-size:12px;color:var(--tm)">Total potential cost avoidance</div></div><div style="flex:1;min-width:300px">${bars}</div></div></div>`;
+<div class="card"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600;display:flex;justify-content:space-between"><span>COST AVOIDANCE — FY26 CUMULATIVE</span><span style="font-size:11px;color:var(--tl);font-weight:400">Projected from active match signals</span></div>
+<div style="padding:20px;display:flex;gap:36px;align-items:center;flex-wrap:wrap">
+<div style="min-width:220px;flex:1"><div style="font-size:36px;font-weight:700;color:var(--green)">$${(totalCA/1e6).toFixed(2)}M</div><div style="font-size:12px;color:var(--tm);margin-bottom:14px">Total potential cost avoidance</div>${bars}</div>
+<div style="flex:2;min-width:320px"><svg viewBox="0 0 600 180" style="width:100%;height:auto"><defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#059669" stop-opacity=".35"/><stop offset="100%" stop-color="#059669" stop-opacity="0"/></linearGradient></defs>
+<path d="${tArea}" fill="url(#cg)"/><polyline points="${tLine}" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"/>
+${tCoords.map(c=>`<circle cx="${c[0]}" cy="${c[1]}" r="3" fill="var(--green)"/>`).join("")}
+${MOS.map((m,i)=>i%2===0?`<text x="${40+i*47}" y="172" text-anchor="middle" font-size="10" fill="var(--tl)">${m}</text>`:"").join("")}
+<text x="40" y="18" font-size="11" fill="var(--tl)">Cumulative avoidance identified · FY26 (synthetic)</text>
+</svg></div></div></div>`;
+initDashFX();
 }
 
 // ===== EQUIPMENT =====
@@ -235,9 +325,9 @@ $("content").innerHTML=`
 
 <div class="card" style="margin-bottom:20px"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600">NORMALIZATION PIPELINE</div>
 <div style="padding:20px"><div class="grid g5" style="gap:5px;margin-bottom:16px">
-${["📥 Raw Ingest","🔄 Field Mapping","📊 DCS Scoring","✅ Index / ⚠️ Quarantine","💡 Heuristic Mapper"].map((s,i)=>`<div style="padding:12px 8px;background:#f8f9fb;border:1px solid var(--border);border-radius:8px;text-align:center;font-size:11px;font-weight:${i===3?600:400}">${s}${i<4?'<div style="color:var(--accent);margin-top:4px">→</div>':''}</div>`).join("")}
+${["📥 Raw Ingest","🔄 Field Mapping","📊 DCS Scoring","✅ Index / ⚠️ Quarantine","💡 Heuristic Mapper"].map((s,i)=>`<div style="padding:12px 8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-align:center;font-size:11px;font-weight:${i===3?600:400}">${s}${i<4?'<div style="color:var(--accent);margin-top:4px">→</div>':''}</div>`).join("")}
 </div>
-<div class="mono" style="font-size:11px;color:var(--tm);padding:12px;background:#f8f9fb;border-radius:6px">DCS = (field_completeness × 0.4) + (source_fidelity × 0.3) + (semantic_resolution × 0.3) → Records below 50% DCS are quarantined</div>
+<div class="mono" style="font-size:11px;color:var(--tm);padding:12px;background:var(--surface);border-radius:6px">DCS = (field_completeness × 0.4) + (source_fidelity × 0.3) + (semantic_resolution × 0.3) → Records below 50% DCS are quarantined</div>
 </div></div>
 
 <div class="card" style="margin-bottom:20px"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600">SAMPLE INGESTION LOG</div>
@@ -245,7 +335,7 @@ ${["📥 Raw Ingest","🔄 Field Mapping","📊 DCS Scoring","✅ Index / ⚠️
 
 <div class="card"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600;display:flex;justify-content:space-between"><span>ANOMALY QUARANTINE QUEUE</span><span style="font-size:11px;color:var(--red);font-weight:600">2 records pending</span></div>
 <div style="padding:16px">${qRows}
-<div style="margin-top:12px;padding:12px;background:#f8f9fb;border-radius:6px;font-size:11px;color:var(--tm)">💡 <b>Heuristic Mapper:</b> Scans historical admin resolutions to suggest mappings for ambiguous records. Learns from each approval to reduce future quarantine events. Currently trained on <b>847 prior resolutions</b> with <b>89% suggestion acceptance rate</b>.</div>
+<div style="margin-top:12px;padding:12px;background:var(--surface);border-radius:6px;font-size:11px;color:var(--tm)">💡 <b>Heuristic Mapper:</b> Scans historical admin resolutions to suggest mappings for ambiguous records. Learns from each approval to reduce future quarantine events. Currently trained on <b>847 prior resolutions</b> with <b>89% suggestion acceptance rate</b>.</div>
 </div></div>`;
 }
 
@@ -273,14 +363,14 @@ $("content").innerHTML=`
 
 <div class="card" style="margin-bottom:20px"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600">HOW INTERCEPTION WORKS</div>
 <div style="padding:20px"><div class="grid g4" style="gap:5px">
-${["📋 New Requisition Detected","🔍 Algorithm Scans Idle Assets","🎯 Match Found — Alert Generated","🚫 Requisition Flagged for Review"].map(s=>`<div style="padding:12px 8px;background:#f8f9fb;border:1px solid var(--border);border-radius:8px;text-align:center;font-size:11px">${s}</div>`).join("")}
+${["📋 New Requisition Detected","🔍 Algorithm Scans Idle Assets","🎯 Match Found — Alert Generated","🚫 Requisition Flagged for Review"].map(s=>`<div style="padding:12px 8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-align:center;font-size:11px">${s}</div>`).join("")}
 </div>
-<div style="margin-top:12px;font-size:11px;color:var(--tm);padding:12px;background:#f8f9fb;border-radius:6px">When a new procurement requisition enters the system, the algorithm immediately scans all idle equipment across service branches. If a viable match exists within the configured distance and condition thresholds, the requisition is flagged and a Procurement Avoidance Alert is generated for the contracting officer's review.</div>
+<div style="margin-top:12px;font-size:11px;color:var(--tm);padding:12px;background:var(--surface);border-radius:6px">When a new procurement requisition enters the system, the algorithm immediately scans all idle equipment across service branches. If a viable match exists within the configured distance and condition thresholds, the requisition is flagged and a Procurement Avoidance Alert is generated for the contracting officer's review.</div>
 </div></div>
 
 <div class="card"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600">ACTIVE ALERTS</div>
 <table><thead><tr><th>Alert</th><th>Requisition Equipment</th><th>Requesting Installation</th><th>Requisition #</th><th>New Cost</th><th>Match Available At</th><th>Savings</th><th>Confidence</th><th>Status</th></tr></thead>
-<tbody>${alerts.map(a=>{const stColor=a.status==="Intercepted"?"var(--green)":a.status==="Under Review"?"var(--amber)":"var(--tl)";return`<tr>
+<tbody>${alerts.map(a=>{const stColor=a.status==="Intercepted"?"#059669":a.status==="Under Review"?"#f59e0b":"#94a3b8";return`<tr>
 <td class="mono" style="font-size:11px">${a.id}</td>
 <td style="font-weight:500">${a.type}</td>
 <td>${a.inst}</td>
@@ -314,14 +404,14 @@ $("content").innerHTML=`
 
 <div class="card" style="margin-bottom:20px"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600">ADJUDICATION WORKFLOW</div>
 <div style="padding:20px"><div class="grid g5" style="gap:5px;margin-bottom:14px">
-${["📸 Return Condition Captured","🔐 SHA-256 Hash Comparison","⚖️ Discrepancy Detection","📨 Liability Routing","💰 Financial Settlement"].map(s=>`<div style="padding:12px 8px;background:#f8f9fb;border:1px solid var(--border);border-radius:8px;text-align:center;font-size:11px">${s}</div>`).join("")}
+${["📸 Return Condition Captured","🔐 SHA-256 Hash Comparison","⚖️ Discrepancy Detection","📨 Liability Routing","💰 Financial Settlement"].map(s=>`<div style="padding:12px 8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-align:center;font-size:11px">${s}</div>`).join("")}
 </div>
-<div class="mono" style="font-size:11px;color:var(--tm);padding:12px;background:#f8f9fb;border-radius:6px">Pre-transfer hash ≠ Post-return hash → Discrepancy detected → Routed to both PBOs → Adjudication window opens → Financial settlement via DFAS → OCS score updated</div>
+<div class="mono" style="font-size:11px;color:var(--tm);padding:12px;background:var(--surface);border-radius:6px">Pre-transfer hash ≠ Post-return hash → Discrepancy detected → Routed to both PBOs → Adjudication window opens → Financial settlement via DFAS → OCS score updated</div>
 </div></div>
 
 ${cases.map(c=>{
-const sevColor=c.severity==="None"?"var(--green)":c.severity==="Minor"?"var(--amber)":"var(--red)";
-const stColor=c.status==="Cleared"?"var(--green)":c.status==="Settled"?"var(--amber)":"var(--red)";
+const sevColor=c.severity==="None"?"#059669":c.severity==="Minor"?"#f59e0b":"#ef4444";
+const stColor=c.status==="Cleared"?"#059669":c.status==="Settled"?"#f59e0b":"#ef4444";
 return`<div class="card" style="margin-bottom:14px;border-left:3px solid ${stColor}">
 <div style="padding:16px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -333,11 +423,11 @@ return`<div class="card" style="margin-bottom:14px;border-left:3px solid ${stCol
 <div style="font-size:12px"><span style="color:var(--tl)">Severity:</span> <span style="color:${sevColor};font-weight:600">${c.severity}</span></div>
 </div>
 <div class="grid g2" style="margin-bottom:12px">
-<div style="padding:10px;background:#f8f9fb;border-radius:6px;border:1px solid var(--border)">
+<div style="padding:10px;background:var(--surface);border-radius:6px;border:1px solid var(--border)">
 <div style="font-size:10px;color:var(--tl);margin-bottom:4px">PRE-TRANSFER HASH</div>
 <div class="mono" style="font-size:10px;color:var(--green)">${c.preHash}</div>
 </div>
-<div style="padding:10px;background:#f8f9fb;border-radius:6px;border:1px solid var(--border)">
+<div style="padding:10px;background:var(--surface);border-radius:6px;border:1px solid var(--border)">
 <div style="font-size:10px;color:var(--tl);margin-bottom:4px">POST-RETURN HASH</div>
 <div class="mono" style="font-size:10px;color:${c.preHash===c.postHash?"var(--green)":"var(--red)"}">${c.postHash}</div>
 </div>
@@ -351,9 +441,130 @@ ${c.estCost>0?`<div style="font-size:12px;margin-bottom:6px"><span style="color:
 <div style="padding:16px;font-size:12px;color:var(--tm)">
 <p style="margin-bottom:8px">Adjudication results directly feed into the Organizational Condition Score (OCS) for both parties:</p>
 <div class="grid g2" style="gap:10px">
-<div style="padding:12px;background:#f0fdf4;border-radius:6px;border:1px solid var(--green)22"><b>Fort Cavazos</b> — DA-001 settled (minor). OCS adjusted: 0.95 → <b style="color:var(--amber)">0.91</b>. Future match priority reduced slightly.</div>
-<div style="padding:12px;background:#fef2f2;border-radius:6px;border:1px solid var(--red)22"><b>Camp Pendleton</b> — DA-003 in dispute (moderate). If settled against borrower, OCS will drop: 0.95 → <b style="color:var(--red)">0.82</b>. Significant deprioritization in future matching.</div>
-</div></div></div>`;}
+<div style="padding:12px;background:var(--green-bg);border-radius:6px;border:1px solid #05966922"><b>Fort Cavazos</b> — DA-001 settled (minor). OCS adjusted: 0.95 → <b style="color:var(--amber)">0.91</b>. Future match priority reduced slightly.</div>
+<div style="padding:12px;background:var(--red-bg);border-radius:6px;border:1px solid #dc262622"><b>Camp Pendleton</b> — DA-003 in dispute (moderate). If settled against borrower, OCS will drop: 0.95 → <b style="color:var(--red)">0.82</b>. Significant deprioritization in future matching.</div>
+</div></div></div>
+
+<div class="card" style="margin-top:20px;border:2px solid var(--accent)"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:700;font-size:15px;color:var(--accent)">📋 DETAILED WALKTHROUGH — DA-001: Hydraulic Line Damage</div>
+<div style="padding:20px">
+
+<div style="font-size:13px;font-weight:700;margin-bottom:14px">The Story</div>
+<div style="font-size:12px;color:var(--tm);margin-bottom:18px;line-height:1.8">Fort Bliss borrowed a CAT D6 Bulldozer from Fort Cavazos for a 90-day construction project. The matching engine identified the idle asset, the MIPR was approved, and the bulldozer was transported 550 miles. When it came back 87 days later, the system detected damage. Here's exactly what happened at each step — and who did what.</div>
+
+<div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px">STEP 1 — Pre-Transfer Condition Capture (Day 0, Fort Cavazos)</div>
+<div style="font-size:12px;color:var(--tl);margin-bottom:6px">Performed by: SPC Rodriguez, Hand Receipt Holder, Fort Cavazos</div>
+<div class="grid g3" style="gap:10px;margin-bottom:6px">
+<div style="padding:12px;background:var(--green-bg);border:1px solid #05966922;border-radius:8px">
+<div style="font-size:11px;font-weight:700;margin-bottom:6px">📸 Photos Taken</div>
+<div style="font-size:11px;color:var(--tm);line-height:1.8">Front exterior: ✓ No damage<br>Rear exterior: ✓ No damage<br>Left side: ✓ No damage<br>Right side: ✓ No damage<br>Engine compartment: ✓ Clean<br>Hydraulic lines: ✓ Intact</div>
+</div>
+<div style="padding:12px;background:var(--green-bg);border:1px solid #05966922;border-radius:8px">
+<div style="font-size:11px;font-weight:700;margin-bottom:6px">🔧 IoT Diagnostics (auto-pulled)</div>
+<div style="font-size:11px;color:var(--tm);line-height:1.8">Engine hours: 3,847<br>Hydraulic pressure: 3,200 PSI ✓<br>DTC codes: None active<br>Battery: 12.6V ✓<br>Coolant temp: 192°F ✓<br>Transmission: Normal</div>
+</div>
+<div style="padding:12px;background:var(--green-bg);border:1px solid #05966922;border-radius:8px">
+<div style="font-size:11px;font-weight:700;margin-bottom:6px">📋 Digital Checklist</div>
+<div style="font-size:11px;color:var(--tm);line-height:1.8">Tracks: ✓ Good (70% life)<br>Hydraulic system: ✓ Operational<br>Safety equipment: ✓ All present<br>Fluid levels: ✓ Full<br>Fire extinguisher: ✓ Charged<br>Operator manual: ✓ Present</div>
+</div>
+</div>
+<div class="mono" style="font-size:10px;padding:8px 12px;background:var(--green-bg);border:1px solid #05966922;border-radius:6px;color:var(--green);margin-bottom:20px">PRE-TRANSFER HASH: sha256:a3f8001c7e2b1d09f4a6e8c3b5d7f1a2e4c6d8b0a9f7e5c3d1b4a8e2f6c0d3b<br>Timestamp: 2026-01-15T09:23:41Z | GPS: 31.134°N, 97.782°W | Signed by: SPC Rodriguez, Fort Cavazos</div>
+
+<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px">STEP 2 — Equipment Received at Fort Bliss (Day 3)</div>
+<div style="font-size:12px;color:var(--tl);margin-bottom:6px">Performed by: SGT Williams, Hand Receipt Holder, Fort Bliss</div>
+<div style="font-size:12px;color:var(--tm);padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border);margin-bottom:20px;line-height:1.8">SGT Williams performs receiving inspection. Takes 6 photos, runs IoT diagnostic pull, completes digital checklist. All readings match the pre-transfer baseline from Fort Cavazos. System confirms: <span style="color:var(--green);font-weight:600">CONDITION MATCHES BASELINE — NO DISCREPANCY ON RECEIPT</span>. SGT Williams signs the digital hand receipt. Custody formally transfers to Fort Bliss.</div>
+
+<div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:10px">STEP 3 — Equipment Used for 87 Days (Days 3–90)</div>
+<div style="font-size:12px;color:var(--tm);padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border);margin-bottom:20px;line-height:1.8">Fort Bliss uses the bulldozer for road grading and site preparation on a construction project. During week 11, an operator strikes a buried concrete slab. The impact ruptures a hydraulic return line. The operator continues working for 2 hours before noticing hydraulic fluid on the ground. By then the line is damaged and fluid has contaminated the undercarriage.</div>
+
+<div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:10px">STEP 4 — Return Condition Capture (Day 90, Fort Bliss → Fort Cavazos)</div>
+<div style="font-size:12px;color:var(--tl);margin-bottom:6px">Performed by: SGT Williams, Hand Receipt Holder, Fort Bliss (before shipping back)</div>
+<div class="grid g3" style="gap:10px;margin-bottom:6px">
+<div style="padding:12px;background:var(--red-bg);border:1px solid #dc262622;border-radius:8px">
+<div style="font-size:11px;font-weight:700;margin-bottom:6px">📸 Photos Taken</div>
+<div style="font-size:11px;color:var(--tm);line-height:1.8">Front exterior: ✓ OK<br>Rear exterior: ✓ OK<br>Left side: ✓ OK<br>Right side: ✓ OK<br>Engine compartment: ✓ OK<br>Hydraulic lines: <span style="color:var(--red);font-weight:600">⚠ DAMAGE — rupture visible on return line, fluid staining</span></div>
+</div>
+<div style="padding:12px;background:var(--red-bg);border:1px solid #dc262622;border-radius:8px">
+<div style="font-size:11px;font-weight:700;margin-bottom:6px">🔧 IoT Diagnostics (auto-pulled)</div>
+<div style="font-size:11px;color:var(--tm);line-height:1.8">Engine hours: 4,291 (+444 hrs)<br>Hydraulic pressure: <span style="color:var(--red);font-weight:600">⚠ 2,100 PSI (was 3,200)</span><br>DTC codes: <span style="color:var(--red);font-weight:600">⚠ P0471 — low hydraulic pressure</span><br>Battery: 12.4V ✓<br>Coolant temp: 195°F ✓<br>Transmission: Normal</div>
+</div>
+<div style="padding:12px;background:var(--red-bg);border:1px solid #dc262622;border-radius:8px">
+<div style="font-size:11px;font-weight:700;margin-bottom:6px">📋 Digital Checklist</div>
+<div style="font-size:11px;color:var(--tm);line-height:1.8">Tracks: ✓ Fair (58% life)<br>Hydraulic system: <span style="color:var(--red);font-weight:600">⚠ DEGRADED</span><br>Safety equipment: ✓ All present<br>Fluid levels: <span style="color:var(--red);font-weight:600">⚠ Hydraulic low</span><br>Fire extinguisher: ✓ Charged<br>Operator manual: ✓ Present</div>
+</div>
+</div>
+<div class="mono" style="font-size:10px;padding:8px 12px;background:var(--red-bg);border:1px solid #dc262622;border-radius:6px;color:var(--red);margin-bottom:20px">POST-RETURN HASH: sha256:b7d9002e8f3c4a5b6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c<br>Timestamp: 2026-04-12T14:07:22Z | GPS: 31.812°N, 106.421°W | Signed by: SGT Williams, Fort Bliss<br><br><b style="color:var(--red)">⚠ HASH MISMATCH DETECTED — PRE ≠ POST — DISCREPANCY FLAGGED AUTOMATICALLY</b></div>
+
+<div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:10px">STEP 5 — Automatic Discrepancy Detection</div>
+<div style="padding:14px;background:var(--red-bg);border:1px solid #dc262622;border-radius:8px;margin-bottom:20px">
+<div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:8px">SYSTEM ALERT — 3 Discrepancies Identified</div>
+<div class="grid g3" style="gap:8px">
+<div style="padding:10px;background:var(--white);border-radius:6px;border:1px solid var(--border)">
+<div style="font-size:10px;font-weight:700;color:var(--red)">DISCREPANCY 1 — Photo Evidence</div>
+<div style="font-size:11px;color:var(--tm);margin-top:4px">Hydraulic return line photo shows visible rupture and fluid staining not present in pre-transfer photos</div>
+</div>
+<div style="padding:10px;background:var(--white);border-radius:6px;border:1px solid var(--border)">
+<div style="font-size:10px;font-weight:700;color:var(--red)">DISCREPANCY 2 — IoT Diagnostics</div>
+<div style="font-size:11px;color:var(--tm);margin-top:4px">Hydraulic pressure dropped from 3,200 PSI → 2,100 PSI. Active DTC code P0471 (not present at pre-transfer)</div>
+</div>
+<div style="padding:10px;background:var(--white);border-radius:6px;border:1px solid var(--border)">
+<div style="font-size:10px;font-weight:700;color:var(--red)">DISCREPANCY 3 — Checklist Delta</div>
+<div style="font-size:11px;color:var(--tm);margin-top:4px">Hydraulic system changed from "Operational" to "Degraded." Fluid levels changed from "Full" to "Hydraulic Low"</div>
+</div>
+</div>
+<div class="mono" style="font-size:10px;margin-top:10px;color:var(--tm)">Estimated repair: Hydraulic return line replacement + fluid flush + labor = <b style="color:var(--red)">$4,200</b></div>
+</div>
+
+<div style="font-size:13px;font-weight:700;color:var(--purple);margin-bottom:10px">STEP 6 — Liability Routing & Adjudication</div>
+<div style="font-size:12px;color:var(--tl);margin-bottom:6px">System automatically notifies both Property Book Officers</div>
+<div style="padding:14px;background:var(--purple-lt);border:1px solid #7c3aed22;border-radius:8px;margin-bottom:6px">
+<div class="grid g2" style="gap:10px">
+<div style="padding:10px;background:var(--white);border-radius:6px">
+<div style="font-size:10px;font-weight:700;color:var(--purple);margin-bottom:4px">SOURCE PBO — Fort Cavazos</div>
+<div style="font-size:11px;color:var(--tm);line-height:1.8">CW3 Martinez, Property Book Officer<br>Notified: 2026-04-12T14:08:01Z (automatic)<br>Received: Full evidence package with pre/post comparison<br>Action: Reviewed photos, confirmed damage was not present at departure<br>Decision: <b>Concurs with discrepancy finding</b></div>
+</div>
+<div style="padding:10px;background:var(--white);border-radius:6px">
+<div style="font-size:10px;font-weight:700;color:var(--purple);margin-bottom:4px">BORROWER PBO — Fort Bliss</div>
+<div style="font-size:11px;color:var(--tm);line-height:1.8">CW2 Thompson, Property Book Officer<br>Notified: 2026-04-12T14:08:01Z (automatic)<br>Received: Full evidence package with pre/post comparison<br>Action: Reviewed, acknowledged hydraulic damage occurred during use<br>Decision: <b>Accepts liability — $4,200</b></div>
+</div>
+</div>
+</div>
+<div style="font-size:11px;color:var(--tm);padding:8px 12px;background:var(--surface);border-radius:6px;margin-bottom:20px">Adjudication window: 5 business days. Both PBOs agreed within 2 days. No escalation needed. If they had disagreed, the system escalates to the next level in each chain of command with the same evidence package.</div>
+
+<div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px">STEP 7 — Financial Settlement & OCS Update</div>
+<div style="padding:14px;background:var(--green-bg);border:1px solid #05966922;border-radius:8px;margin-bottom:6px">
+<div class="grid g2" style="gap:10px;font-size:12px;margin-bottom:10px">
+<div><span style="color:var(--tl)">Original MIPR amount:</span> <b>$3,510</b> (transport only)</div>
+<div><span style="color:var(--tl)">Damage liability added:</span> <b style="color:var(--red)">$4,200</b></div>
+<div><span style="color:var(--tl)">Revised settlement:</span> <b>$7,710</b> (transport + repair)</div>
+<div><span style="color:var(--tl)">Settlement channel:</span> <b>DFAS via existing MIPR</b></div>
+</div>
+<div style="font-size:12px;color:var(--tm);margin-bottom:10px">Fort Bliss's budget absorbs the $4,200 repair cost through the same MIPR financial instrument that funded the transport. No new paperwork, no separate funding authorization.</div>
+<div class="mono" style="font-size:10px;padding:8px;background:var(--white);border-radius:4px;border:1px solid var(--border)">✓ Settlement processed via DFAS: $7,710.00<br>✓ Fort Cavazos credited: $4,200.00 (repair funds)<br>✓ Equipment sent to maintenance shop for hydraulic line replacement<br>✓ Audit trail: Complete — all evidence, decisions, and settlement cryptographically linked</div>
+</div>
+
+<div style="padding:14px;background:var(--amber-lt);border:1px solid #d9770633;border-radius:8px;margin-bottom:6px">
+<div style="font-size:12px;font-weight:700;color:var(--amber-dk);margin-bottom:6px">OCS SCORE UPDATE — Fort Bliss</div>
+<div class="grid g3" style="gap:10px;font-size:12px">
+<div><span style="color:var(--tl)">Previous OCS:</span> <b>0.950</b></div>
+<div><span style="color:var(--tl)">New OCS:</span> <b style="color:var(--amber)">0.912</b></div>
+<div><span style="color:var(--tl)">Impact:</span> <b>Slight deprioritization</b></div>
+</div>
+<div class="mono" style="font-size:10px;margin-top:8px;padding:8px;background:var(--white);border-radius:4px;border:1px solid var(--border)">OCS = 1.0 − (0.9 × discrepancy_rate) = 1.0 − (0.9 × 1/12) = 1.0 − 0.075 = 0.925<br>Adjusted for severity (minor): 0.925 × 0.986 = <b>0.912</b><br><br>Effect: Fort Bliss will rank slightly lower in future match signals.<br>If Fort Bliss returns next 3 transfers with no damage, OCS will recover to 0.94+ within 6 months.</div>
+</div>
+
+<div style="margin-top:14px;padding:14px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
+<div style="font-size:12px;font-weight:700;margin-bottom:6px">KEY TAKEAWAYS FOR THIS SCENARIO</div>
+<div style="font-size:12px;color:var(--tm);line-height:2">
+• <b>Who took the photos?</b> The hand receipt holder at each installation — the person already responsible for the equipment under AR 735-5<br>
+• <b>How long did it take?</b> 10-15 minutes per capture. Less time than the paper inspection they already do<br>
+• <b>Who decided liability?</b> The two PBOs reviewed the evidence and agreed. The system presented evidence — humans decided<br>
+• <b>How was damage paid for?</b> Added to the existing MIPR settlement — no new paperwork needed<br>
+• <b>What happens next time?</b> Fort Bliss's OCS dropped to 0.912. They'll rank slightly lower for future matches. If they take better care of equipment going forward, the score recovers automatically<br>
+• <b>Total time from detection to settlement:</b> 2 days (vs. weeks or months under current manual processes)<br>
+• <b>Cost avoidance still realized?</b> Yes — even with $4,200 in damage, Fort Bliss avoided $277,290 in procurement costs ($285,000 replacement − $7,710 total settlement)
+</div></div>
+
+</div></div>`;}
 
 function renderMatching(){
 $("content").innerHTML=`
@@ -387,7 +598,7 @@ ${factorRow("Org Condition Score (OCS)",m.ocs,".15","Feedback loop")}
 <div style="margin-top:4px;padding-top:4px;border-top:2px solid var(--border)">
 ${factorRow("Data Quality Modifier (DQM)",0.94,"mult","DCS-based")}
 </div>
-<div class="mono" style="margin-top:6px;font-size:10px;color:var(--tm);padding:8px;background:#f8f9fb;border-radius:4px">Final Score = ${m.cp.toFixed(3)} × 0.94 (DQM) = <b>${(m.cp*0.94).toFixed(3)}</b> | DQM penalizes matches when source data has low confidence scores</div>
+<div class="mono" style="margin-top:6px;font-size:10px;color:var(--tm);padding:8px;background:var(--surface);border-radius:4px">Final Score = ${m.cp.toFixed(3)} × 0.94 (DQM) = <b>${(m.cp*0.94).toFixed(3)}</b> | DQM penalizes matches when source data has low confidence scores</div>
 <div style="margin-top:8px;font-size:11px;color:var(--tl)">Requisition: ${m.dem.rq} · NSN: ${m.eq.nsn}</div>
 </div></div></div></div>`}
 
@@ -399,7 +610,7 @@ function toggleMatch(i){const el=$("factors-"+i);if(el)el.classList.toggle("hidd
 function renderFinancial(){
 const icons=["🎯","📄","⚖️","📨","🔐","🚛","✅"];
 const labels=["Match Signal","Form Gen","Appropriation","Routing","⏸ OFFICER","Execution","Settlement"];
-const stepVis=labels.map((s,i)=>`<div style="font-size:10px;padding:12px 6px;background:${i===4?"var(--amber-lt)":"#f8f9fb"};border:1px solid ${i===4?"var(--amber)33":"var(--border)"};border-radius:8px;text-align:center;font-weight:${i===4?700:500};color:${i===4?"var(--amber-dk)":"var(--tm)"}">${icons[i]}<br>${s}<div style="font-size:8px;margin-top:4px;font-weight:700;color:${i===4?"var(--amber)":"var(--tl)"}">${i===4?"HUMAN":"AUTO"}</div></div>`).join("");
+const stepVis=labels.map((s,i)=>`<div style="font-size:10px;padding:12px 6px;background:${i===4?"var(--amber-lt)":"var(--surface)"};border:1px solid ${i===4?"#d9770633":"var(--border)"};border-radius:8px;text-align:center;font-weight:${i===4?700:500};color:${i===4?"var(--amber-dk)":"var(--tm)"}">${icons[i]}<br>${s}<div style="font-size:8px;margin-top:4px;font-weight:700;color:${i===4?"var(--amber)":"var(--tl)"}">${i===4?"HUMAN":"AUTO"}</div></div>`).join("");
 const rows=DEMANDS.map(d=>{const bm=matches.find(m=>m.demId===d.id);const inst=INST.find(i=>i.id===d.instId);return`<tr><td style="font-weight:500">${d.type}</td><td>${inst?.name}</td><td>${badge(inst?.branch)}</td><td style="color:var(--tl)">${d.date}</td><td>${badge(d.ug)}</td><td>${bm?`<button onclick="openMipr(${matches.indexOf(bm)})" class="btn btn-outline" style="font-size:11px;padding:5px 14px">MIPR Workflow →</button>`:""}</td></tr>`}).join("");
 
 $("content").innerHTML=`
@@ -421,8 +632,8 @@ $("content").innerHTML=`
 <div class="grid g3" style="margin-bottom:24px">${modCards}</div>
 <div class="card" style="margin-bottom:24px"><div style="padding:20px">
 <div style="font-size:13px;font-weight:700;color:var(--purple);margin-bottom:14px">Closed-Loop Feedback → Matching Engine</div>
-<div class="grid g5" style="gap:5px;margin-bottom:14px">${["🚛 Transfer","🔍 Inspect","⚖️ Compare","📊 Score","↻ OCS Update"].map(s=>`<div style="font-size:11px;padding:12px;background:#f8f9fb;border:1px solid var(--border);border-radius:8px;text-align:center">${s}</div>`).join("")}</div>
-<div class="mono" style="font-size:11px;color:var(--tm);padding:12px;background:#f8f9fb;border-radius:6px">OCS = 1.0 − (weighted_decay × discrepancy_rate) → Poor stewards deprioritized in future matching</div>
+<div class="grid g5" style="gap:5px;margin-bottom:14px">${["🚛 Transfer","🔍 Inspect","⚖️ Compare","📊 Score","↻ OCS Update"].map(s=>`<div style="font-size:11px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-align:center">${s}</div>`).join("")}</div>
+<div class="mono" style="font-size:11px;color:var(--tm);padding:12px;background:var(--surface);border-radius:6px">OCS = 1.0 − (weighted_decay × discrepancy_rate) → Poor stewards deprioritized in future matching</div>
 </div></div>
 <div style="font-size:13px;font-weight:700;margin-bottom:10px">Click equipment to inspect condition</div>
 <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">${eqCards}</div>`;
@@ -481,7 +692,7 @@ const steps=[
 ];
 const s=steps[miprStep];
 const stepBars=steps.map((_,i)=>`<div style="flex:1;height:4px;border-radius:2px;background:${i<miprStep?"var(--green)":i===miprStep?(s.a==="HUMAN"?"var(--amber)":"var(--accent)"):"var(--border)"}"></div>`).join("");
-const humanWarn=s.a==="HUMAN"?`<div style="background:var(--amber-lt);border:1px solid var(--amber)33;border-radius:8px;padding:14px;margin-bottom:16px"><div style="font-size:12px;font-weight:700;color:var(--amber-dk);margin-bottom:4px">⚠ HUMAN AUTHORIZATION REQUIRED</div><div style="font-size:12px">System halted. An authorized officer must review and provide a digitally signed CAC/PKI authorization token.</div></div>`:"";
+const humanWarn=s.a==="HUMAN"?`<div style="background:var(--amber-lt);border:1px solid #d9770633;border-radius:8px;padding:14px;margin-bottom:16px"><div style="font-size:12px;font-weight:700;color:var(--amber-dk);margin-bottom:4px">⚠ HUMAN AUTHORIZATION REQUIRED</div><div style="font-size:12px">System halted. An authorized officer must review and provide a digitally signed CAC/PKI authorization token.</div></div>`:"";
 const navBtn=miprStep===4?`<button onclick="simulateAuth()" class="btn" style="background:var(--amber-lt);border:1px solid var(--amber);color:var(--amber-dk);font-weight:700">🔐 Simulate Officer Auth</button>`:`<button onclick="miprNext()" class="btn btn-primary" ${miprStep>=6?"disabled":""}>${miprStep>=6?"Complete ✓":"Next →"}</button>`;
 
 $("modal-overlay").classList.remove("hidden");
@@ -495,7 +706,7 @@ $("modal-content").innerHTML=`
 ${badge(s.a==="HUMAN"?"HUMAN":"AUTO")}
 </div>
 ${humanWarn}
-<pre class="mono" style="font-size:12px;background:#f8f9fb;border:1px solid var(--border);border-radius:8px;padding:18px;white-space:pre-wrap;line-height:1.9">${s.b}</pre>
+<pre class="mono" style="font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px;white-space:pre-wrap;line-height:1.9">${s.b}</pre>
 </div>
 <div class="modal-footer"><button onclick="miprBack()" class="btn" style="border:1px solid var(--border)" ${miprStep===0?"disabled":""}>← Back</button>${navBtn}</div>`;
 }
@@ -514,21 +725,55 @@ $("modal-content").innerHTML=`
 <div style="height:160px;background:url(${e.img}) center/cover;border-radius:8px;margin-bottom:16px"></div>
 <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:10px">THREE-MODALITY CONDITION BASELINE</div>
 <div class="grid g3" style="margin-bottom:18px">
-<div style="padding:12px;background:#f8f9fb;border-radius:8px;border:1px solid var(--border)"><div style="font-size:11px;font-weight:700;margin-bottom:6px">📸 Visual Photos</div><pre class="mono" style="font-size:10px;color:var(--tm);white-space:pre-wrap;margin:0;line-height:1.7">Exterior: 4 angles\nInterior: 2 photos\nDamage: 0 flagged\nAll SHA-256 hashed</pre></div>
-<div style="padding:12px;background:#f8f9fb;border-radius:8px;border:1px solid var(--border)"><div style="font-size:11px;font-weight:700;margin-bottom:6px">🔧 IoT Diagnostics</div><pre class="mono" style="font-size:10px;color:var(--tm);white-space:pre-wrap;margin:0;line-height:1.7">Hours: ${fmt(e.hours)}\nPressure: Normal\nDTC: None\nBattery: 12.6V</pre></div>
-<div style="padding:12px;background:#f8f9fb;border-radius:8px;border:1px solid var(--border)"><div style="font-size:11px;font-weight:700;margin-bottom:6px">📋 Checklist</div><pre class="mono" style="font-size:10px;color:var(--tm);white-space:pre-wrap;margin:0;line-height:1.7">Tracks: ✓ Good\nHydraulics: ✓ OK\nSafety: ✓ Present\nFluids: ✓ Full</pre></div>
+<div style="padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border)"><div style="font-size:11px;font-weight:700;margin-bottom:6px">📸 Visual Photos</div><pre class="mono" style="font-size:10px;color:var(--tm);white-space:pre-wrap;margin:0;line-height:1.7">Exterior: 4 angles\nInterior: 2 photos\nDamage: 0 flagged\nAll SHA-256 hashed</pre></div>
+<div style="padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border)"><div style="font-size:11px;font-weight:700;margin-bottom:6px">🔧 IoT Diagnostics</div><pre class="mono" style="font-size:10px;color:var(--tm);white-space:pre-wrap;margin:0;line-height:1.7">Hours: ${fmt(e.hours)}\nPressure: Normal\nDTC: None\nBattery: 12.6V</pre></div>
+<div style="padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border)"><div style="font-size:11px;font-weight:700;margin-bottom:6px">📋 Checklist</div><pre class="mono" style="font-size:10px;color:var(--tm);white-space:pre-wrap;margin:0;line-height:1.7">Tracks: ✓ Good\nHydraulics: ✓ OK\nSafety: ✓ Present\nFluids: ✓ Full</pre></div>
 </div>
 <div style="font-size:11px;color:var(--tl);margin-bottom:4px">SHA-256 Hash (tamper-evident):</div>
-<div class="mono" style="font-size:10px;background:#f0fdf4;padding:10px;border-radius:6px;color:var(--green);word-break:break-all;margin-bottom:16px;border:1px solid var(--green)22">${hash}</div>
+<div class="mono" style="font-size:10px;background:var(--green-bg);padding:10px;border-radius:6px;color:var(--green);word-break:break-all;margin-bottom:16px;border:1px solid #05966922">${hash}</div>
 <div style="font-size:11px;color:var(--tl);margin-bottom:18px">Timestamp: ${new Date().toISOString()} | Recorded to immutable audit log</div>
 <div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:10px">FEEDBACK LOOP → MATCHING ENGINE</div>
-<div style="padding:14px;background:#f8f9fb;border-radius:8px;border:1px solid var(--border)">
+<div style="padding:14px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
 <div class="grid g3" style="margin-bottom:10px;font-size:12px"><div><span style="color:var(--tl)">Transfers:</span> <b>12</b></div><div><span style="color:var(--tl)">Discrepancies:</span> <b style="color:var(--amber)">2</b></div><div><span style="color:var(--tl)">OCS Score:</span> <b style="color:var(--green)">0.850</b></div></div>
 <div class="mono" style="font-size:10px;background:var(--white);padding:8px;border-radius:4px;border:1px solid var(--border)">OCS = 1.0 − (0.9 × 0.167) = <b>0.850</b><br>Organizations with lower OCS are deprioritized in future matching.</div>
 </div></div>`;
 }
 
 function closeModal(){$("modal-overlay").classList.add("hidden")}
+
+// ===== GUIDED DEMO TOUR =====
+const TOUR=[
+{tab:"dashboard",t:"Command Dashboard",d:"Real-time visibility across 8 installations and 4 service branches. The live map shows active match signals — animated routes are equipment matches the algorithm found. Purple routes cross service branches, something no existing DoD system can see."},
+{tab:"equipment",t:"Unified Equipment Inventory",d:"Every asset from every branch in one searchable index. Filter by branch or status. Amber cards are idle equipment — money sitting on a ramp. Click any card to inspect its tamper-proof condition record."},
+{tab:"normalization",t:"Data Normalization Engine",d:"Raw DPAS data is messy. Each record gets a Data Confidence Score. Clean records index automatically; ambiguous ones quarantine. The Heuristic Mapper suggests fixes learned from 847 prior resolutions — 89% acceptance rate."},
+{tab:"matching",t:"Predictive Matching Engine",d:"Five weighted factors — equipment similarity, geographic proximity (Haversine), temporal availability, financial value, and organizational condition score — multiplied by a Data Quality Modifier. Click any match to see the full factor decomposition. This is the patented core.",act:()=>{const el=$("factors-0");if(el)el.classList.remove("hidden")}},
+{tab:"alerts",t:"Procurement Avoidance Alerts",d:"The system watches new requisitions and intercepts purchase orders when a matching idle asset exists nearby. PA-001: Fort Bliss was about to spend $285K on a bulldozer sitting idle at Fort Cavazos. Intercepted — $278K saved."},
+{tab:"financial",t:"MIPR Financial Workflow",d:"The 7-step state machine automates the DD-448 paperwork: form generation, appropriation validation, Anti-Deficiency Act check, and routing. Step 5 HALTS for officer CAC/PKI signature — the system never decides, the officer does. Click any MIPR Workflow button to walk through it."},
+{tab:"condition",t:"Condition Tracking",d:"Three evidence modalities at every handoff: photos, IoT diagnostics pulled from the equipment's computer, and a digital checklist. All SHA-256 hashed — tamper-proof. Takes the hand receipt holder 10 minutes, replaces the AR 735-5 paper process."},
+{tab:"adjudication",t:"Damage Adjudication",d:"When equipment returns, pre and post hashes are compared automatically. Mismatch = discrepancy detected, evidence routed to both Property Book Officers, cost added to the existing MIPR. Scroll down for the full DA-001 hydraulic damage walkthrough — detection to settlement in 2 days."},
+{tab:"cost",t:"Cost Avoidance & ROI",d:"The bottom line: $4M+ in identified avoidance against a $575K Phase 1 pilot. Even if only a quarter of matches execute, ROI exceeds 7x. One equipment class, two installations, 8.5 months — then scale."},
+];
+let tourStep=-1;
+function startTour(){tourStep=0;showTourStep()}
+function showTourStep(){
+if(tourStep<0||tourStep>=TOUR.length){endTour();return}
+const s=TOUR[tourStep];
+if(currentTab!==s.tab)switchTab(s.tab);
+if(s.act)setTimeout(s.act,150);
+let box=$("tour-box");
+if(!box){box=document.createElement("div");box.id="tour-box";box.style.cssText="position:fixed;bottom:24px;right:24px;width:360px;max-width:calc(100vw - 48px);background:#0f1a2e;border:1px solid #2d4468;color:#fff;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.5);z-index:200;padding:20px;animation:slideIn .25s ease";document.body.appendChild(box)}
+box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<span style="font-size:10px;letter-spacing:1.5px;color:#93c5fd;font-weight:700">TOUR — STEP ${tourStep+1} OF ${TOUR.length}</span>
+<button onclick="endTour()" style="color:#94a3b8;font-size:16px">✕</button></div>
+<div style="font-size:16px;font-weight:700;margin-bottom:6px">${s.t}</div>
+<div style="font-size:12px;line-height:1.7;color:#cbd5e1;margin-bottom:14px">${s.d}</div>
+<div style="display:flex;gap:3px;margin-bottom:14px">${TOUR.map((_,i)=>`<div style="flex:1;height:3px;border-radius:2px;background:${i<=tourStep?"#2563eb":"#334155"}"></div>`).join("")}</div>
+<div style="display:flex;justify-content:space-between">
+<button onclick="tourStep--;showTourStep()" ${tourStep===0?"disabled":""} style="color:${tourStep===0?"#475569":"#e2e8f0"};font-size:13px;font-weight:600">← Back</button>
+<button onclick="tourStep++;showTourStep()" style="background:#2563eb;color:#fff;padding:8px 22px;border-radius:8px;font-size:13px;font-weight:700">${tourStep===TOUR.length-1?"Finish ✓":"Next →"}</button>
+</div>`;
+}
+function endTour(){tourStep=-1;const b=$("tour-box");if(b)b.remove()}
 </script>
 </body>
 </html>
