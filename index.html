@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovLeaseAI — DoD Secure Access</title>
+<title>GovLeaseAI — Federal Equipment Utilization Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f4f6f9;--white:#fff;--border:#e0e4ec;--border-lt:#eef1f6;--navy:#0f1a2e;--nav-bg:#0f1a2e;--accent:#2563eb;--accent-lt:#dbeafe;--green:#059669;--green-lt:#d1fae5;--red:#dc2626;--red-lt:#fee2e2;--amber:#d97706;--amber-lt:#fef3c7;--amber-dk:#92400e;--purple:#7c3aed;--purple-lt:#ede9fe;--cyan:#0891b2;--tx:#1a202c;--tm:#4a5568;--tl:#94a3b8;--surface:var(--surface);--hover:var(--hover);--green-bg:var(--green-bg);--red-bg:var(--red-bg);--amber-bg:var(--amber-bg);--map-land:#f8fafc;--map-border:#cbd5e1;--banner-a:#eff6ff;--banner-b:var(--green-bg);--shadow:0 1px 4px rgba(0,0,0,.04);--shadow-hover:0 2px 10px rgba(0,0,0,.06);--mono:'JetBrains Mono',monospace;--sans:'DM Sans',system-ui,sans-serif;}
@@ -54,44 +54,26 @@ tr:hover{background:var(--hover)}
 </head>
 <body>
 
-<!-- ===== CAC LOGIN ===== -->
+<!-- ===== DEMO ENTRY ===== -->
 <div id="login-banner" style="min-height:100vh;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
-<div style="background:#1e293b;border:2px solid #334155;border-radius:8px;max-width:700px;width:100%;overflow:hidden">
-<div style="background:#fbbf24;padding:10px 20px;display:flex;align-items:center;gap:10px"><span style="font-size:18px">⚠</span><span style="font-size:13px;font-weight:700;color:#1e293b;letter-spacing:.5px">U.S. DEPARTMENT OF DEFENSE WARNING</span></div>
-<div style="padding:24px 28px;color:#e2e8f0;font-size:12px;line-height:1.9">
-<p style="margin-bottom:14px">You are accessing a U.S. Government (USG) Information System (IS) that is provided for USG-authorized use only.</p>
-<p style="margin-bottom:14px">By using this IS, you consent to the following conditions:</p>
-<p style="margin-bottom:8px">• The USG routinely intercepts and monitors communications on this IS for purposes including penetration testing, COMSEC monitoring, network operations and defense, personnel misconduct, law enforcement, and counterintelligence investigations.</p>
-<p style="margin-bottom:8px">• At any time, the USG may inspect and seize data stored on this IS.</p>
-<p style="margin-bottom:8px">• Communications using, or data stored on, this IS are not private, are subject to routine monitoring, interception, and search, and may be disclosed or used for any USG-authorized purpose.</p>
-<p style="margin-bottom:14px">• This IS includes security measures to protect USG interests — not for your personal benefit or privacy.</p>
-<p><b style="color:#fbbf24">Unauthorized use is prohibited and subject to criminal and civil penalties.</b></p>
-<div style="margin-top:24px;text-align:center"><button onclick="showCACLogin()" style="font-size:14px;font-weight:700;padding:12px 48px;border-radius:6px;border:none;background:#fbbf24;color:#1e293b;cursor:pointer;letter-spacing:.5px">I AGREE</button></div>
+<div style="background:#1e293b;border:2px solid #334155;border-radius:10px;max-width:640px;width:100%;overflow:hidden">
+<div style="background:#1e40af;padding:18px 26px"><div style="font-size:11px;letter-spacing:2px;color:#93c5fd;font-weight:600">IZY GLOBAL SERVICES LLC</div><div style="font-size:24px;font-weight:800;color:#fff;margin-top:4px">GovLeaseAI</div><div style="font-size:13px;color:#bfdbfe;margin-top:2px">Federal Equipment Utilization Platform — Demonstration Environment</div></div>
+<div style="padding:24px 26px;font-size:13px;line-height:1.7;color:#cbd5e1">
+<p style="margin-bottom:12px">This is a <b style="color:#fff">vendor demonstration</b>. It is not a U.S. Government information system and is not connected to any agency network or record.</p>
+<p style="margin-bottom:12px"><b style="color:#fff">All data shown is synthetic.</b> Sites, assets, requisitions, and transactions are generated for illustration and do not represent real government property.</p>
+<p style="margin-bottom:18px">Nine subsystems are shown end to end: ingestion, normalization, predictive matching, procurement avoidance alerts, reimbursable transfer workflow, condition documentation, damage adjudication, transportation, and cost avoidance.</p>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><div style="font-size:11px;color:#64748b">U.S. Patent Application 19/639,216 · Patent Pending</div>
+<button onclick="doLogin()" id="login-btn" style="background:#fbbf24;color:#0f172a;font-weight:700;padding:12px 32px;border-radius:6px;font-size:14px">Enter Demonstration →</button></div>
 </div></div>
-<div style="margin-top:16px;font-size:10px;color:#64748b">GovLeaseAI — DEMO ENVIRONMENT</div>
+<div style="margin-top:16px;font-size:10px;color:#64748b">GovLeaseAI — DEMO ENVIRONMENT · izyglobal.github.io/govleaseai</div>
 </div>
 
-<div id="login-cac" class="hidden" style="min-height:100vh;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
-<div style="background:#1e293b;border:2px solid #334155;border-radius:8px;max-width:480px;width:100%;overflow:hidden">
-<div style="background:#1e40af;padding:16px 24px;text-align:center"><div style="font-size:10px;letter-spacing:2px;color:#93c5fd;text-transform:uppercase;margin-bottom:4px">Department of Defense</div><div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:1px">CAC / PIV Authentication</div></div>
-<div style="padding:28px 32px">
-<div style="text-align:center;margin-bottom:24px"><div style="width:80px;height:52px;background:#334155;border-radius:6px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;border:1px solid #475569;font-size:28px">💳</div><div style="font-size:13px;color:#e2e8f0;font-weight:600">Insert your CAC/PIV card</div><div style="font-size:11px;color:#94a3b8;margin-top:4px">Select authentication certificate</div></div>
-<div style="background:#0f172a;border:1px solid #334155;border-radius:6px;padding:14px;margin-bottom:16px"><div style="font-size:10px;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Certificate Selected</div><div style="display:flex;align-items:center;gap:10px"><div style="width:8px;height:8px;border-radius:4px;background:#22c55e;animation:pulse 2s infinite"></div><div><div style="font-size:12px;color:#e2e8f0;font-weight:600">RAJI.ISMAILA.ABIOLA.1234567890</div><div style="font-size:10px;color:#64748b">DoD PIV Authentication Certificate</div></div></div></div>
-<div style="margin-bottom:20px"><label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;letter-spacing:.5px">ENTER CAC PIN</label><input id="cac-pin" type="password" maxlength="8" placeholder="••••••" style="width:100%;padding:12px 16px;background:#0f172a;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:16px;font-family:var(--mono);letter-spacing:8px;text-align:center" onkeydown="if(event.key==='Enter')doLogin()"></div>
-<div id="pin-error" style="font-size:11px;color:#ef4444;margin-bottom:8px;display:none">PIN must be at least 4 digits</div>
-<button id="login-btn" onclick="doLogin()" style="width:100%;font-size:14px;font-weight:700;padding:13px;border-radius:6px;border:none;background:#1e40af;color:#fff;cursor:pointer;letter-spacing:.5px;transition:.2s">Sign In</button>
-<div style="margin-top:16px;text-align:center;font-size:10px;color:#64748b">DoD PKI · TLS 1.3 · FIPS 140-2</div>
-</div></div>
-<div style="margin-top:16px;font-size:10px;color:#475569">GovLeaseAI v1.0 · Patent App. 19/639,216 · DEMO</div>
-</div>
-
-<!-- ===== MAIN APP ===== -->
 <div id="app" class="hidden" style="min-height:100vh;display:flex;flex-direction:column">
 
 <!-- NAV -->
 <nav style="background:var(--navy);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:60">
 <div style="display:flex;align-items:center;gap:10px"><button id="side-toggle" onclick="toggleSidebar()">☰</button><div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:.5px">GovLeaseAI</div><span style="font-size:9px;letter-spacing:1.5px;color:#64748b;border:1px solid #334155;padding:2px 8px;border-radius:10px;margin-left:4px">v1.0</span></div>
-<div style="display:flex;align-items:center;gap:12px"><button onclick="toggleTheme()" id="theme-btn" title="Toggle Command/Light mode" style="color:#94a3b8;font-size:14px;padding:4px 8px;border:1px solid #334155;border-radius:6px">🌙</button><div style="position:relative"><button onclick="toggleBell()" style="color:#94a3b8;font-size:16px;position:relative;padding:4px">🔔<span id="bell-badge" style="display:none;position:absolute;top:-2px;right:-4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:8px;align-items:center;justify-content:center;padding:0 3px">0</span></button><div id="bell-drop" class="hidden card" style="position:absolute;right:0;top:36px;width:300px;z-index:150;max-height:320px;overflow:auto"></div></div><button onclick="startTour()" style="color:#93c5fd;font-size:11px;font-weight:600;border:1px solid #334155;padding:5px 12px;border-radius:6px;white-space:nowrap">▶ Tour</button><span style="font-size:11px;color:#94a3b8;white-space:nowrap">Ismaila Raji · SECRET</span><div style="width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;flex-shrink:0">IR</div></div>
+<div style="display:flex;align-items:center;gap:12px"><button onclick="toggleTheme()" id="theme-btn" title="Toggle Command/Light mode" style="color:#94a3b8;font-size:14px;padding:4px 8px;border:1px solid #334155;border-radius:6px">🌙</button><div style="position:relative"><button onclick="toggleBell()" style="color:#94a3b8;font-size:16px;position:relative;padding:4px">🔔<span id="bell-badge" style="display:none;position:absolute;top:-2px;right:-4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:8px;align-items:center;justify-content:center;padding:0 3px">0</span></button><div id="bell-drop" class="hidden card" style="position:absolute;right:0;top:36px;width:300px;z-index:150;max-height:320px;overflow:auto"></div></div><button onclick="startTour()" style="color:#93c5fd;font-size:11px;font-weight:600;border:1px solid #334155;padding:5px 12px;border-radius:6px;white-space:nowrap">▶ Tour</button><span style="font-size:11px;color:#94a3b8;white-space:nowrap">Ismaila Raji · Demo Admin</span><div style="width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;flex-shrink:0">IR</div></div>
 </nav>
 
 <!-- BODY: SIDEBAR + CONTENT -->
@@ -117,11 +99,11 @@ function applyTheme(){document.documentElement.setAttribute("data-theme",theme);
 function toggleTheme(){theme=theme==="cmd"?"light":"cmd";try{localStorage.setItem("glai-theme",theme)}catch(e){}applyTheme()}
 applyTheme();
 // ===== DATA ENGINE =====
-const INST=[{id:"hood",name:"Fort Cavazos",branch:"Army",state:"TX",lat:31.13,lng:-97.78},{id:"bliss",name:"Fort Bliss",branch:"Army",state:"TX",lat:31.81,lng:-106.42},{id:"sill",name:"Fort Sill",branch:"Army",state:"OK",lat:34.65,lng:-98.40},{id:"polk",name:"Fort Johnson",branch:"Army",state:"LA",lat:31.05,lng:-93.20},{id:"lejeune",name:"Camp Lejeune",branch:"Marines",state:"NC",lat:34.62,lng:-77.35},{id:"pendleton",name:"Camp Pendleton",branch:"Marines",state:"CA",lat:33.30,lng:-117.35},{id:"norfolk",name:"NB Norfolk",branch:"Navy",state:"VA",lat:36.95,lng:-76.33},{id:"ellsworth",name:"Ellsworth AFB",branch:"Air Force",state:"SD",lat:44.15,lng:-103.10}];
+const INST=[{id:"hood",name:"Fort Cavazos",branch:"Army",state:"TX",lat:31.13,lng:-97.78},{id:"bliss",name:"Fort Bliss",branch:"Army",state:"TX",lat:31.81,lng:-106.42},{id:"sill",name:"Fort Sill",branch:"Army",state:"OK",lat:34.65,lng:-98.40},{id:"polk",name:"Fort Johnson",branch:"Army",state:"LA",lat:31.05,lng:-93.20},{id:"lejeune",name:"Camp Lejeune",branch:"Marines",state:"NC",lat:34.62,lng:-77.35},{id:"pendleton",name:"Camp Pendleton",branch:"Marines",state:"CA",lat:33.30,lng:-117.35},{id:"norfolk",name:"NB Norfolk",branch:"Navy",state:"VA",lat:36.95,lng:-76.33},{id:"ellsworth",name:"Ellsworth AFB",branch:"Air Force",state:"SD",lat:44.15,lng:-103.10},{id:"gsafleet",name:"GSA Fleet — Fort Worth",branch:"GSA",state:"TX",lat:32.75,lng:-97.33},{id:"jsc",name:"NASA Johnson SC",branch:"NASA",state:"TX",lat:29.55,lng:-95.09},{id:"tvhs",name:"VA Tennessee Valley HCS",branch:"VA",state:"TN",lat:35.85,lng:-86.39},{id:"srs",name:"DOE Savannah River",branch:"DOE",state:"SC",lat:33.30,lng:-81.70},{id:"usfs",name:"USDA Forest Svc R8",branch:"USDA",state:"GA",lat:33.75,lng:-84.39}];
 
 const EQT=[{type:"CAT D6 Bulldozer",nsn:"3805-01-456-7890",cost:285000,img:"https://images.unsplash.com/photo-1621922688758-8d99f5697d02?w=300&h=200&fit=crop"},{type:"CAT 320 Excavator",nsn:"3805-01-567-8901",cost:342000,img:"https://images.unsplash.com/photo-1580901368919-7738efb0f228?w=300&h=200&fit=crop"},{type:"CAT 140M Grader",nsn:"3805-01-234-5678",cost:410000,img:"https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=300&h=200&fit=crop"},{type:"CAT 950 Wheel Loader",nsn:"3805-01-678-9012",cost:265000,img:"https://images.unsplash.com/photo-1629118573298-eed895217e69?w=300&h=200&fit=crop"},{type:"CASE 580 Backhoe",nsn:"3805-01-345-6789",cost:112000,img:"https://images.unsplash.com/photo-1621922688758-8d99f5697d02?w=300&h=200&fit=crop"},{type:"Bobcat T770 Skid Steer",nsn:"3805-01-789-0123",cost:78000,img:"https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=300&h=200&fit=crop"}];
 
-const DEMANDS=[{id:"D1",instId:"bliss",type:"CAT D6 Bulldozer",ug:"High",date:"03/01/2026",rq:"W91247-26-R-0042",est:285000},{id:"D2",instId:"sill",type:"CAT 320 Excavator",ug:"Medium",date:"02/20/2026",rq:"W91247-26-R-0058",est:342000},{id:"D3",instId:"lejeune",type:"CAT 950 Wheel Loader",ug:"High",date:"03/10/2026",rq:"W91247-26-R-0061",est:265000},{id:"D4",instId:"pendleton",type:"CASE 580 Backhoe",ug:"Low",date:"03/05/2026",rq:"M67004-26-R-0019",est:112000},{id:"D5",instId:"norfolk",type:"CAT 140M Grader",ug:"Medium",date:"02/28/2026",rq:"N00189-26-R-0033",est:410000},{id:"D6",instId:"hood",type:"CAT 320 Excavator",ug:"High",date:"03/12/2026",rq:"W91247-26-R-0067",est:342000},{id:"D7",instId:"polk",type:"Bobcat T770 Skid Steer",ug:"High",date:"03/15/2026",rq:"W91247-26-R-0071",est:78000}];
+const DEMANDS=[{id:"D1",instId:"bliss",type:"CAT D6 Bulldozer",ug:"High",date:"03/01/2026",rq:"W91247-26-R-0042",est:285000},{id:"D2",instId:"sill",type:"CAT 320 Excavator",ug:"Medium",date:"02/20/2026",rq:"W91247-26-R-0058",est:342000},{id:"D3",instId:"lejeune",type:"CAT 950 Wheel Loader",ug:"High",date:"03/10/2026",rq:"W91247-26-R-0061",est:265000},{id:"D4",instId:"pendleton",type:"CASE 580 Backhoe",ug:"Low",date:"03/05/2026",rq:"M67004-26-R-0019",est:112000},{id:"D5",instId:"norfolk",type:"CAT 140M Grader",ug:"Medium",date:"02/28/2026",rq:"N00189-26-R-0033",est:410000},{id:"D6",instId:"hood",type:"CAT 320 Excavator",ug:"High",date:"03/12/2026",rq:"W91247-26-R-0067",est:342000},{id:"D7",instId:"polk",type:"Bobcat T770 Skid Steer",ug:"High",date:"03/15/2026",rq:"W91247-26-R-0071",est:78000},{id:"D8",instId:"jsc",type:"CAT 320 Excavator",ug:"High",date:"03/08/2026",rq:"80JSC026R0014",est:342000},{id:"D9",instId:"srs",type:"CAT D6 Bulldozer",ug:"Medium",date:"03/11/2026",rq:"89303326REM0021",est:285000},{id:"D10",instId:"tvhs",type:"CASE 580 Backhoe",ug:"Low",date:"03/14/2026",rq:"36C24926Q0088",est:112000}];
 
 function rng(s){return function(){s=(s*16807)%2147483647;return(s-1)/2147483646}}
 const equipment=[];
@@ -138,7 +120,7 @@ const totalCA=matches.reduce((s,m)=>s+m.av,0);
 const xsCount=matches.filter(m=>m.xs).length;
 
 // ===== HELPERS =====
-const bColors={Army:"#059669",Marines:"#ef4444",Navy:"#3b82f6","Air Force":"#a78bfa",High:"#ef4444",Medium:"#f59e0b",Low:"#94a3b8",Active:"#059669",Idle:"#f59e0b",Maintenance:"#ef4444","In-Transit":"#3b82f6",Reserved:"#94a3b8",Good:"#059669",Fair:"#f59e0b","Cross-Service":"#a78bfa",HUMAN:"#f59e0b",AUTO:"#059669",Indexed:"#059669",Mapped:"#3b82f6",Quarantined:"#ef4444","Heuristic Suggestion":"#f59e0b","Manual Review":"#ef4444"};
+const bColors={Army:"#059669",Marines:"#ef4444",Navy:"#3b82f6","Air Force":"#a78bfa",High:"#ef4444",Medium:"#f59e0b",Low:"#94a3b8",Active:"#059669",Idle:"#f59e0b",Maintenance:"#ef4444","In-Transit":"#3b82f6",Reserved:"#94a3b8",Good:"#059669",Fair:"#f59e0b","Cross-Agency":"#a78bfa",HUMAN:"#f59e0b",AUTO:"#059669",Indexed:"#059669",Mapped:"#3b82f6",Quarantined:"#ef4444","Heuristic Suggestion":"#f59e0b","Manual Review":"#ef4444","GSA":"#0ea5e9","NASA":"#dc2626","VA":"#7c3aed","DOE":"#059669","USDA":"#65a30d"};
 function badge(text){const c=bColors[text]||"var(--tl)";return `<span class="badge" style="background:${c}15;color:${c};border:1px solid ${c}30">${text}</span>`}
 function pb(val,max=100,color="var(--accent)"){const p=Math.min(100,val/max*100);return `<div class="pb"><div class="pb-fill" style="width:${p}%;background:${color}"></div></div>`}
 function $(id){return document.getElementById(id)}
@@ -152,9 +134,9 @@ function pushActivity(ev){ACTIVITY.unshift(ev);if(ACTIVITY.length>30)ACTIVITY.po
 function genActivity(){const r=Math.random(),m=matches[Math.floor(Math.random()*matches.length)],e=equipment[Math.floor(Math.random()*equipment.length)],ts=new Date().toLocaleTimeString("en-US",{hour12:false});
 if(r<.25)return{i:"🎯",t:`Match signal: <b>${m.type.split(" ").slice(-1)[0]}</b> ${m.src.name} → ${m.dst.name} · <b style="color:var(--green)">$${(m.av/1000).toFixed(0)}K</b>`,ts};
 if(r<.45)return{i:"🚫",t:`Requisition <span class="mono">${m.dem.rq}</span> flagged — idle asset ${m.dist} mi away`,ts};
-if(r<.6)return{i:"🔐",t:`Officer authorization token validated — MIPR execution resumed`,ts};
+if(r<.6)return{i:"🔐",t:`Authorized-official token validated — transfer execution resumed`,ts};
 if(r<.75)return{i:"📸",t:`Condition baseline hashed — <span class="mono">${e.id}</span> at ${e.instName}`,ts};
-if(r<.88)return{i:"📥",t:`DPAS batch ingested — ${40+Math.floor(Math.random()*30)} records · ${Math.floor(Math.random()*3)} quarantined`,ts};
+if(r<.88)return{i:"📥",t:`${Math.random()<.5?"DPAS":"Agency property system"} extract ingested — ${40+Math.floor(Math.random()*30)} records · ${Math.floor(Math.random()*3)} quarantined`,ts};
 return{i:"📊",t:`OCS updated: ${e.instName} → <b>0.9${Math.floor(Math.random()*50+10)}</b>`,ts}}
 let actTimer=null;
 function startActivityEngine(){if(actTimer)return;pushActivity(genActivity());pushActivity(genActivity());actTimer=setInterval(()=>pushActivity(genActivity()),7000)}
@@ -162,8 +144,7 @@ function toggleBell(){const d=$("bell-drop");if(!d)return;d.classList.toggle("hi
 function initDashFX(){document.querySelectorAll(".cnt").forEach(animateCount);const feed=$("act-feed");if(feed)feed.innerHTML=ACTIVITY.slice(0,9).map(ev=>`<div style="padding:9px 14px;border-bottom:1px solid var(--border-lt);font-size:12px;display:flex;gap:8px"><span>${ev.i}</span><div style="flex:1"><div>${ev.t}</div><div style="font-size:10px;color:var(--tl)" class="mono">${ev.ts}</div></div></div>`).join("")}
 
 // ===== LOGIN =====
-function showCACLogin(){$("login-banner").classList.add("hidden");$("login-cac").classList.remove("hidden")}
-function doLogin(){const pin=$("cac-pin").value.replace(/\D/g,"");if(pin.length<4){$("pin-error").style.display="block";return}$("pin-error").style.display="none";const btn=$("login-btn");btn.textContent="⏳ Authenticating...";btn.style.background="#334155";btn.style.color="#94a3b8";setTimeout(()=>{$("login-cac").classList.add("hidden");$("app").classList.remove("hidden");initApp()},1200)}
+function doLogin(){$("login-banner").classList.add("hidden");$("app").classList.remove("hidden");initApp()}
 
 // ===== APP =====
 let currentTab="dashboard";
@@ -230,7 +211,7 @@ const tArea="M"+tCoords[0].join(",")+" "+tCoords.slice(1).map(c=>"L"+c.join(",")
 $("content").innerHTML=`
 <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px">
 <div><h1 style="font-size:22px;font-weight:700;margin-bottom:2px">Welcome, Ismaila!</h1>
-<p style="color:var(--tm);font-size:13px">Cross-service equipment visibility and transfer management</p></div>
+<p style="color:var(--tm);font-size:13px">Cross-agency equipment visibility and transfer management</p></div>
 <button onclick="startTour()" class="btn btn-primary" style="display:flex;align-items:center;gap:8px">▶ Guided Demo Tour</button>
 </div>
 <div class="card" style="margin-bottom:16px;background:linear-gradient(90deg,var(--banner-a),var(--banner-b));border-left:4px solid var(--accent)"><div style="padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
@@ -239,13 +220,13 @@ $("content").innerHTML=`
 <div style="font-size:12px;color:var(--tm)">Direct implementation of the President's March 20, 2025 EO on <b>Eliminating Information Silos</b> and the Feb 26, 2025 <b>Cost Efficiency Initiative</b> — every intercepted procurement is waste eliminated.</div></div>
 </div></div>
 <div class="grid g4" style="margin-bottom:16px">
-<div class="card" style="padding:16px 20px;border-top:3px solid var(--accent)"><div style="display:flex;justify-content:space-between;align-items:flex-end"><div style="font-size:28px;font-weight:700" class="cnt" data-t="${equipment.length}" data-d="0">0</div>${spark([48,52,55,58,61,63,65,equipment.length],"var(--accent)")}</div><div style="font-size:12px;color:var(--tm)">Total Equipment</div><div style="font-size:11px;color:var(--tl)">Class IV · 8 installations · 4 branches</div></div>
-<div class="card" style="padding:16px 20px;border-top:3px solid var(--purple)"><div style="display:flex;justify-content:space-between;align-items:flex-end"><div style="font-size:28px;font-weight:700" class="cnt" data-t="${matches.length}" data-d="0">0</div>${spark([8,11,13,14,16,17,19,matches.length],"var(--purple)")}</div><div style="font-size:12px;color:var(--tm)">AI Matches</div><div style="font-size:11px;color:var(--tl)">${xsCount} cross-service opportunities</div></div>
-<div class="card" style="padding:16px 20px;border-top:3px solid var(--amber)"><div style="display:flex;justify-content:space-between;align-items:flex-end"><div style="font-size:28px;font-weight:700;color:var(--amber)" class="cnt" data-t="${idleCount}" data-d="0">0</div>${spark([31,29,30,28,27,26,25,idleCount],"var(--amber)")}</div><div style="font-size:12px;color:var(--tm)">Idle Equipment</div><div style="font-size:11px;color:var(--tl)">Available for lateral transfer</div></div>
+<div class="card" style="padding:16px 20px;border-top:3px solid var(--accent)"><div style="display:flex;justify-content:space-between;align-items:flex-end"><div style="font-size:28px;font-weight:700" class="cnt" data-t="${equipment.length}" data-d="0">0</div>${spark([48,52,55,58,61,63,65,equipment.length],"var(--accent)")}</div><div style="font-size:12px;color:var(--tm)">Total Equipment</div><div style="font-size:11px;color:var(--tl)">Heavy equipment · ${INST.length} sites · ${new Set(INST.map(i=>i.branch)).size} agencies</div></div>
+<div class="card" style="padding:16px 20px;border-top:3px solid var(--purple)"><div style="display:flex;justify-content:space-between;align-items:flex-end"><div style="font-size:28px;font-weight:700" class="cnt" data-t="${matches.length}" data-d="0">0</div>${spark([8,11,13,14,16,17,19,matches.length],"var(--purple)")}</div><div style="font-size:12px;color:var(--tm)">AI Matches</div><div style="font-size:11px;color:var(--tl)">${xsCount} cross-agency opportunities</div></div>
+<div class="card" style="padding:16px 20px;border-top:3px solid var(--amber)"><div style="display:flex;justify-content:space-between;align-items:flex-end"><div style="font-size:28px;font-weight:700;color:var(--amber)" class="cnt" data-t="${idleCount}" data-d="0">0</div>${spark([31,29,30,28,27,26,25,idleCount],"var(--amber)")}</div><div style="font-size:12px;color:var(--tm)">Idle Equipment</div><div style="font-size:11px;color:var(--tl)">Redeployable before excess declaration</div></div>
 <div class="card" style="padding:16px 20px;border-top:3px solid var(--green)"><div style="display:flex;justify-content:space-between;align-items:flex-end"><div style="font-size:28px;font-weight:700;color:var(--green)" class="cnt" data-t="${(totalCA/1e6).toFixed(1)}" data-d="1" data-p="$" data-s="M">$0.0M</div>${spark([.8,1.4,1.9,2.6,3.1,3.7,4.1,totalCA/1e6],"var(--green)")}</div><div style="font-size:12px;color:var(--tm)">Cost Avoidance</div><div style="font-size:11px;color:var(--tl)">${Math.round(totalCA/575000)}x ROI on Phase 1</div></div>
 </div>
 <div class="grid g21" style="margin-bottom:16px">
-<div class="card"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600;display:flex;justify-content:space-between;align-items:center"><span>LIVE OPERATIONS MAP</span><span style="font-size:11px;color:var(--tl);font-weight:400">Animated routes = active match signals · Purple = cross-service</span></div>
+<div class="card"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600;display:flex;justify-content:space-between;align-items:center"><span>LIVE OPERATIONS MAP</span><span style="font-size:11px;color:var(--tl);font-weight:400">Animated routes = active match signals · Purple = cross-agency</span></div>
 <div style="padding:10px 20px 16px;overflow-x:auto"><svg viewBox="0 0 960 620" style="width:100%;min-width:600px;height:auto">
 <path d="${US_PATH}" fill="var(--map-land)" stroke="var(--map-border)" stroke-width="1.5"/>
 ${routes}${dots}
@@ -365,7 +346,7 @@ $("content").innerHTML=`
 <div style="padding:20px"><div class="grid g4" style="gap:5px">
 ${["📋 New Requisition Detected","🔍 Algorithm Scans Idle Assets","🎯 Match Found — Alert Generated","🚫 Requisition Flagged for Review"].map(s=>`<div style="padding:12px 8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-align:center;font-size:11px">${s}</div>`).join("")}
 </div>
-<div style="margin-top:12px;font-size:11px;color:var(--tm);padding:12px;background:var(--surface);border-radius:6px">When a new procurement requisition enters the system, the algorithm immediately scans all idle equipment across service branches. If a viable match exists within the configured distance and condition thresholds, the requisition is flagged and a Procurement Avoidance Alert is generated for the contracting officer's review.</div>
+<div style="margin-top:12px;font-size:11px;color:var(--tm);padding:12px;background:var(--surface);border-radius:6px">When a new procurement requisition enters the system, the algorithm immediately scans all idle equipment across agencies. If a viable match exists within the configured distance and condition thresholds, the requisition is flagged and a Procurement Avoidance Alert is generated for the contracting officer's review.</div>
 </div></div>
 
 <div class="card"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600">ACTIVE ALERTS</div>
@@ -579,14 +560,14 @@ return`<div class="card" style="margin-bottom:12px;cursor:pointer" onclick="togg
 <div style="width:160px;min-height:120px;background:url(${m.img}) center/cover;flex-shrink:0"></div>
 <div style="flex:1;padding:16px">
 <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-<div><div style="font-weight:600;font-size:15px">${m.type}</div><div style="font-size:12px;color:var(--tm);margin-top:2px">${m.src.name} (${m.src.branch}) → ${m.dst.name} (${m.dst.branch}) ${m.xs?badge("Cross-Service"):""}</div></div>
+<div><div style="font-weight:600;font-size:15px">${m.type}</div><div style="font-size:12px;color:var(--tm);margin-top:2px">${m.src.name} (${m.src.branch}) → ${m.dst.name} (${m.dst.branch}) ${m.xs?badge("Cross-Agency"):""}</div></div>
 <div style="text-align:right"><div style="font-size:22px;font-weight:700;color:var(--green)">$${(m.av/1000).toFixed(0)}K</div><div style="font-size:10px;color:var(--tl)">cost avoidance</div></div>
 </div>
 <div style="display:flex;gap:20px;font-size:12px;color:var(--tm);margin-bottom:10px;flex-wrap:wrap"><span>Dist: <b>${m.dist} mi</b></span><span>Transport: <b style="color:var(--red)">$${fmt(m.tc)}</b></span><span>Replace: <b>$${fmt(m.eq.cost)}</b></span><span>Idle: <b>${m.eq.idle}d</b></span></div>
 <div style="display:flex;align-items:center;gap:12px">
 <div style="display:flex;align-items:center;gap:6px">${pb(m.cp*100,100,m.cp>.8?"var(--green)":"var(--amber)")}<span style="font-size:12px;font-weight:600;color:${m.cp>.8?"var(--green)":"var(--amber)"}">${(m.cp*100).toFixed(0)}%</span></div>
 ${badge(m.dem.ug)}
-<button onclick="event.stopPropagation();openMipr(${i})" class="btn btn-primary" style="margin-left:auto;font-size:12px;padding:8px 20px">MIPR Workflow →</button>
+<button onclick="event.stopPropagation();openMipr(${i})" class="btn btn-primary" style="margin-left:auto;font-size:12px;padding:8px 20px">Transfer Workflow →</button>
 </div>
 <div id="factors-${i}" class="hidden" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
 <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:8px">FACTOR SCORE DECOMPOSITION</div>
@@ -611,11 +592,11 @@ function renderFinancial(){
 const icons=["🎯","📄","⚖️","📨","🔐","🚛","✅"];
 const labels=["Match Signal","Form Gen","Appropriation","Routing","⏸ OFFICER","Execution","Settlement"];
 const stepVis=labels.map((s,i)=>`<div style="font-size:10px;padding:12px 6px;background:${i===4?"var(--amber-lt)":"var(--surface)"};border:1px solid ${i===4?"#d9770633":"var(--border)"};border-radius:8px;text-align:center;font-weight:${i===4?700:500};color:${i===4?"var(--amber-dk)":"var(--tm)"}">${icons[i]}<br>${s}<div style="font-size:8px;margin-top:4px;font-weight:700;color:${i===4?"var(--amber)":"var(--tl)"}">${i===4?"HUMAN":"AUTO"}</div></div>`).join("");
-const rows=DEMANDS.map(d=>{const bm=matches.find(m=>m.demId===d.id);const inst=INST.find(i=>i.id===d.instId);return`<tr><td style="font-weight:500">${d.type}</td><td>${inst?.name}</td><td>${badge(inst?.branch)}</td><td style="color:var(--tl)">${d.date}</td><td>${badge(d.ug)}</td><td>${bm?`<button onclick="openMipr(${matches.indexOf(bm)})" class="btn btn-outline" style="font-size:11px;padding:5px 14px">MIPR Workflow →</button>`:""}</td></tr>`}).join("");
+const rows=DEMANDS.map(d=>{const bm=matches.find(m=>m.demId===d.id);const inst=INST.find(i=>i.id===d.instId);return`<tr><td style="font-weight:500">${d.type}</td><td>${inst?.name}</td><td>${badge(inst?.branch)}</td><td style="color:var(--tl)">${d.date}</td><td>${badge(d.ug)}</td><td>${bm?`<button onclick="openMipr(${matches.indexOf(bm)})" class="btn btn-outline" style="font-size:11px;padding:5px 14px">Transfer Workflow →</button>`:""}</td></tr>`}).join("");
 
 $("content").innerHTML=`
 <h1 style="font-size:22px;font-weight:700;margin-bottom:4px">Financial Workflow</h1>
-<p style="font-size:12px;color:var(--tm);margin-bottom:18px">7-step MIPR state machine. Step 5 halts for human CAC/PKI authorization. Click any request to walk through.</p>
+<p style="font-size:12px;color:var(--tm);margin-bottom:18px">Seven-step reimbursable transfer state machine — template-driven (DoD MIPR / DD-448, or a civilian interagency agreement). Step 5 halts for the authorized official. Click any request to walk through.</p>
 <div class="grid" style="grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:24px">${stepVis}</div>
 <div class="card"><table><thead><tr><th>Equipment</th><th>Installation</th><th>Branch</th><th>Requested</th><th>Urgency</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
@@ -670,8 +651,8 @@ $("content").innerHTML=`<h1 style="font-size:22px;font-weight:700;margin-bottom:
 <table><thead><tr><th>Type</th><th>Qty</th><th>Avg Util</th></tr></thead><tbody>${eqDist}</tbody></table>
 </div></div></div>
 <div class="card"><div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:600">PILOT EXECUTIVE SUMMARY</div><div style="padding:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:12px">
-<div><div style="font-weight:600;margin-bottom:8px;color:var(--tl);font-size:10px;text-transform:uppercase;letter-spacing:1px">Configuration</div><div>Equipment: <b>Class IV Construction</b></div><div>Installations: <b>8 monitored</b></div><div>Branches: <b>Army, Marines, Navy, AF</b></div><div>Data: <b>DPAS Batch (Daily)</b></div></div>
-<div><div style="font-weight:600;margin-bottom:8px;color:var(--tl);font-size:10px;text-transform:uppercase;letter-spacing:1px">Performance</div><div>Records: <b>${equipment.length}</b></div><div>Idle: <b style="color:var(--amber)">${idleCount}</b></div><div>Matches: <b style="color:var(--green)">${matches.length}</b></div><div>Cross-Service: <b>${xsCount}</b></div></div>
+<div><div style="font-weight:600;margin-bottom:8px;color:var(--tl);font-size:10px;text-transform:uppercase;letter-spacing:1px">Configuration</div><div>Equipment: <b>Heavy construction & support</b></div><div>Sites: <b>${INST.length} monitored</b></div><div>Agencies: <b>${new Set(INST.map(i=>i.branch)).size}</b></div><div>Data: <b>DPAS Batch (Daily)</b></div></div>
+<div><div style="font-weight:600;margin-bottom:8px;color:var(--tl);font-size:10px;text-transform:uppercase;letter-spacing:1px">Performance</div><div>Records: <b>${equipment.length}</b></div><div>Idle: <b style="color:var(--amber)">${idleCount}</b></div><div>Matches: <b style="color:var(--green)">${matches.length}</b></div><div>Cross-Agency: <b>${xsCount}</b></div></div>
 <div><div style="font-weight:600;margin-bottom:8px;color:var(--tl);font-size:10px;text-transform:uppercase;letter-spacing:1px">Financial</div><div>Avoidance: <b style="color:var(--green)">$${(totalCA/1e6).toFixed(2)}M</b></div><div>Phase 1: <b>$575,000</b></div><div>ROI: <b style="color:var(--green)">${Math.round(totalCA/575000)}x</b></div></div>
 </div></div>`;
 }
@@ -684,7 +665,7 @@ const m=miprMatch;if(!m)return;
 const steps=[
 {t:"Match Signal Received",i:"🎯",a:"AUTO",b:`Equipment: ${m.type}\nSource: ${m.src.name} (${m.src.branch})\nDest: ${m.dst.name} (${m.dst.branch})\nScore: ${m.cp}\nAvoidance: $${fmt(m.av)}\nRequisition: ${m.dem.rq}`},
 {t:"DD Form 448 Generation",i:"📄",a:"AUTO",b:`MIPR: MIPR-${Date.now().toString(36).toUpperCase()}\nFrom: ${m.dst.name}\nTo: ${m.src.name}\nFY2026 | Approp: 2102020\nAmt: $${fmt(m.tc)} (transport)\nEquipment: ${m.type}\nNSN: ${m.eq.nsn}\nPeriod: 180 days`},
-{t:"Appropriation Validation",i:"⚖️",a:"AUTO",b:`✓ Fund type: O&M — authorized\n✓ FY2026 Q3 available\n✓ Single-transaction threshold: PASS\n✓ Cross-service authority: verified\n✓ Regulatory limit: PASS\n✓ Anti-Deficiency Act: CLEARED\n✓ No fund augmentation\n\nAll compliance checks passed.`},
+{t:"Appropriation Validation",i:"⚖️",a:"AUTO",b:`✓ Fund type: O&M — authorized\n✓ FY2026 Q3 available\n✓ Single-transaction threshold: PASS\n✓ Cross-agency transfer authority: verified\n✓ Regulatory limit: PASS\n✓ Anti-Deficiency Act: CLEARED\n✓ No fund augmentation\n\nAll compliance checks passed.`},
 {t:"Approval Routing",i:"📨",a:"AUTO",b:`Routing chain:\n1. Source Property Book Officer → PENDING\n2. Source Resource Manager → QUEUED\n3. Dest Property Book Officer → QUEUED\n4. Dest Resource Manager → QUEUED\n\nSecure transmission: TLS 1.3\nPackage hash: SHA-256\n\n⏸ System state: HALTED\nAwaiting authorization tokens...`},
 {t:"Officer Authorization",i:"🔐",a:"HUMAN",b:`⏸ EXECUTION HALTED\n\nSystem paused for human authorization.\n\nRequired: Digitally signed tokens from\neach official's CAC/PKI credential.\n\nThe system does NOT proceed without approval.\nThe system does NOT make the decision.\nThe officer reviews, decides, and signs.\n\nUpon receipt of valid tokens,\nautomated execution resumes.`},
 {t:"Transfer Execution",i:"🚛",a:"AUTO",b:`✓ Tokens received and validated\n✓ PKI signatures verified\n✓ Condition baseline: 4 photos captured\n✓ IoT telemetry snapshot recorded\n✓ Digital checklist completed\n✓ All media SHA-256 hashed\n✓ Route: ${Math.ceil(m.dist/350)} days transit\n✓ Custody documented\n\nStatus: IN TRANSIT`},
@@ -743,12 +724,12 @@ function closeModal(){$("modal-overlay").classList.add("hidden")}
 
 // ===== GUIDED DEMO TOUR =====
 const TOUR=[
-{tab:"dashboard",t:"Command Dashboard",d:"Real-time visibility across 8 installations and 4 service branches. The live map shows active match signals — animated routes are equipment matches the algorithm found. Purple routes cross service branches, something no existing DoD system can see."},
-{tab:"equipment",t:"Unified Equipment Inventory",d:"Every asset from every branch in one searchable index. Filter by branch or status. Amber cards are idle equipment — money sitting on a ramp. Click any card to inspect its tamper-proof condition record."},
-{tab:"normalization",t:"Data Normalization Engine",d:"Raw DPAS data is messy. Each record gets a Data Confidence Score. Clean records index automatically; ambiguous ones quarantine. The Heuristic Mapper suggests fixes learned from 847 prior resolutions — 89% acceptance rate."},
+{tab:"dashboard",t:"Command Dashboard",d:"Real-time visibility across 13 sites and 9 federal organizations — military installations and civilian agencies on one index. Animated routes are equipment matches the algorithm found. Purple routes cross agency boundaries — something no existing government system can see."},
+{tab:"equipment",t:"Unified Equipment Inventory",d:"Every asset from every agency in one searchable index. Filter by agency or status. Amber cards are idle equipment — money sitting on a ramp. Click any card to inspect its tamper-proof condition record."},
+{tab:"normalization",t:"Data Normalization Engine",d:"Raw accountability data — DPAS or any agency property system — is messy. Each record gets a Data Confidence Score. Clean records index automatically; ambiguous ones quarantine. The Heuristic Mapper suggests fixes learned from 847 prior resolutions — 89% acceptance rate."},
 {tab:"matching",t:"Predictive Matching Engine",d:"Five weighted factors — equipment similarity, geographic proximity (Haversine), temporal availability, financial value, and organizational condition score — multiplied by a Data Quality Modifier. Click any match to see the full factor decomposition. This is the patented core.",act:()=>{const el=$("factors-0");if(el)el.classList.remove("hidden")}},
 {tab:"alerts",t:"Procurement Avoidance Alerts",d:"The system watches new requisitions and intercepts purchase orders when a matching idle asset exists nearby. PA-001: Fort Bliss was about to spend $285K on a bulldozer sitting idle at Fort Cavazos. Intercepted — $278K saved."},
-{tab:"financial",t:"MIPR Financial Workflow",d:"The 7-step state machine automates the DD-448 paperwork: form generation, appropriation validation, Anti-Deficiency Act check, and routing. Step 5 HALTS for officer CAC/PKI signature — the system never decides, the officer does. Click any MIPR Workflow button to walk through it."},
+{tab:"financial",t:"Reimbursable Transfer Workflow",d:"The seven-step state machine automates the funds-transfer package — a DoD MIPR (DD-448) or a civilian interagency agreement, by template: form generation, appropriation validation, funding-rule checks, and routing. Step 5 HALTS for the authorized official's signature — the system never decides, the official does. Click any Transfer Workflow button to walk through it."},
 {tab:"condition",t:"Condition Tracking",d:"Three evidence modalities at every handoff: photos, IoT diagnostics pulled from the equipment's computer, and a digital checklist. All SHA-256 hashed — tamper-proof. Takes the hand receipt holder 10 minutes, replaces the AR 735-5 paper process."},
 {tab:"adjudication",t:"Damage Adjudication",d:"When equipment returns, pre and post hashes are compared automatically. Mismatch = discrepancy detected, evidence routed to both Property Book Officers, cost added to the existing MIPR. Scroll down for the full DA-001 hydraulic damage walkthrough — detection to settlement in 2 days."},
 {tab:"cost",t:"Cost Avoidance & ROI",d:"The bottom line: $4M+ in identified avoidance against a $575K Phase 1 pilot. Even if only a quarter of matches execute, ROI exceeds 7x. One equipment class, two installations, 8.5 months — then scale."},
